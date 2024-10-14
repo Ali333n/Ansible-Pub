@@ -1,0 +1,42 @@
+---
+- name: Check for Updates
+  hosts: all
+  gather_facts: yes
+
+  tasks:
+    - name: Run apt-get update command
+      become: yes
+      shell: apt update
+
+    - name: Check for available updates
+      become: yes
+      shell: apt list --upgradable | grep -v "Listing..."
+      register: available_updates
+      ignore_errors: true
+
+    - name: Check if there are packages to autoremove
+      become: yes
+      shell: apt-get -s autoremove | grep "^Remv"
+      register: autoremove_packages
+      ignore_errors: true
+
+    - name: Send Discord notification with available updates and autoremove packages
+      when: available_updates.stdout_lines | length > 0 or autoremove_packages.stdout_lines | length > 0
+      uri:
+        url: '{{ webhook_url }}'
+        method: POST
+        body_format: json
+        body:
+          content: |
+            {% if available_updates.stdout_lines | length > 0 %}
+            Updates are available on {{ inventory_hostname }}:
+            {{ available_updates.stdout }}
+            {% endif %}
+
+            {% if autoremove_packages.stdout_lines | length > 0 %}
+            Packages that can be autoremoved on {{ inventory_hostname }}:
+            {{ autoremove_packages.stdout }}
+            {% endif %}
+        headers:
+          Content-Type: application/json
+        status_code: 204

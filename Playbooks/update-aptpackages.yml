@@ -8,6 +8,7 @@
       apt:
         upgrade: yes
         update_cache: yes
+        autoremove: yes
 
     # Check if reboot is required
     - name: check if system reboot is required
