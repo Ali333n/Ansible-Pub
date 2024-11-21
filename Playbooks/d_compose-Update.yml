@@ -1,0 +1,31 @@
+---
+- name: Run Docker Compose Pull and Up Commands and Wait for Completion
+  hosts: d_compose
+  become: yes
+  vars:
+    compose_command: "docker compose"
+  tasks:
+    - name: Run Docker Compose down, pull, and up commands in a single command
+      ansible.builtin.shell: |
+        {{ compose_command }} -f {{ compose_path }} down && \
+        {{ compose_command }} -f {{ compose_path }} pull && \
+        {{ compose_command }} -f {{ compose_path }} up -d
+      changed_when: false  # Marks the task as informational
+
+    - name: Wait until all containers are in running state
+      ansible.builtin.command: "docker ps -q"
+      register: running_containers
+      retries: 600
+      delay: 5
+      until: running_containers.stdout_lines | length > 0
+      changed_when: false
+
+    - name: Send completion message to Discord
+      uri:
+        url: '{{ webhook_url }}'
+        method: POST
+        body_format: json
+        body: '{"content": "Docker Compose Update on {{ inventory_hostname }} finished!"}'
+        headers:
+          Content-Type: application/json
+        status_code: 204
