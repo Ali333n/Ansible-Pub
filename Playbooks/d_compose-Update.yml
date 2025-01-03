@@ -4,6 +4,7 @@
   become: yes
   vars:
     compose_command: "docker compose"
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
     - name: Run Docker Compose down, pull, and up commands in a single command
       ansible.builtin.shell: |
