@@ -4,6 +4,12 @@
     
   become: yes
   tasks:
+    # Install dnf-utils if not already installed (needed for needs-restarting)
+    - name: Install dnf-utils (for needs-restarting command)
+      dnf:
+        name: dnf-utils
+        state: present
+
     # Upgrade all packages
     - name: Upgrade all packages with DNF
       dnf:
