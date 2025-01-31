@@ -1,0 +1,37 @@
+- hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    
+  become: yes
+  tasks:
+    # Upgrade packages
+    - name: Upgrade all packages with DNF
+      dnf:
+        name: '*'
+        state: latest
+        update_cache: yes
+        autoremove: yes
+
+    # Check if reboot is required
+    - name: Check if system reboot is required
+      command: needs-restarting -r
+      register: reboot_required
+      failed_when: reboot_required.rc not in [0, 1]
+      changed_when: reboot_required.rc == 1
+
+    # Send Discord message when reboot is required
+    - name: Send Discord message
+      uri:
+        url: '{{ webhook_url }}'
+        method: POST
+        body_format: json
+        body: '{"content": "Rebooting {{ inventory_hostname }}"}'
+        headers:
+          Content-Type: application/json
+        status_code: 204
+      when: reboot_required.rc == 1
+
+    # Rebooting
+    - name: Rebooting Systems
+      reboot:
+      when: reboot_required.rc == 1
