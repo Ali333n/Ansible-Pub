@@ -4,13 +4,17 @@
     
   become: yes
   tasks:
-    # Upgrade packages
+    # Upgrade all packages
     - name: Upgrade all packages with DNF
       dnf:
         name: '*'
         state: latest
         update_cache: yes
-        autoremove: yes
+
+    # Autoremove unnecessary packages
+    - name: Remove unneeded packages
+      command: dnf autoremove -y
+      changed_when: true
 
     # Check if reboot is required
     - name: Check if system reboot is required
