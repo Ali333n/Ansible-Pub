@@ -1,79 +1,49 @@
 ---
-- name: Check for Updates on AlmaLinux
+- name: Check for available updates on AlmaLinux
   hosts: all
+  become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
-  gather_facts: yes
 
   tasks:
-    - name: Update DNF cache
-      become: yes
-      shell: dnf check-update || true
-      register: dnf_update_result
+    - name: Get list of available updates
+      command: dnf list updates --quiet
+      register: dnf_updates
       changed_when: false
       failed_when: false
 
-    - name: Check for available updates
+    - name: Parse update list
       set_fact:
-        available_updates: "{{ dnf_update_result.stdout_lines | select('search', ' ') | list }}"
+        available_updates: "{{ dnf_updates.stdout_lines | select('search', '^[a-zA-Z0-9]') | list }}"
 
-    - name: Set default kernel_updates to an empty list
-      set_fact:
-        kernel_updates: []
-
-    - name: Search for Kernel updates if updates are available
+    - name: Identify Kernel updates
       set_fact:
         kernel_updates: "{{ available_updates | select('search', 'kernel') | list }}"
-      when: available_updates | length > 0
 
-    - name: Set default autoremove_packages to an empty list
-      set_fact:
-        autoremove_packages: []
-
-    - name: Check if there are packages to autoremove
-      become: yes
-      shell: dnf repoquery --unneeded
-      register: autoremove_packages
-      changed_when: false
-      failed_when: false
-
-    - name: Send Discord notification with Kernel updates if available
-      when: kernel_updates | length > 0
+    - name: Send Discord message if kernel updates are available
       uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
         body:
           content: |
-            Kernel updates are available on {{ inventory_hostname }}:
+            🚀 Kernel updates available on **{{ inventory_hostname }}**:
             {{ kernel_updates | join('\n') }}
         headers:
           Content-Type: application/json
         status_code: 204
+      when: kernel_updates | length > 0
 
-    - name: Send Discord notification for general updates if no Kernel updates
-      when: kernel_updates | length == 0 and available_updates | length > 0
+    - name: Send Discord message if general updates are available
       uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
         body:
           content: |
-            Updates are available on {{ inventory_hostname }}.
+            📌 Updates available on **{{ inventory_hostname }}**:
+            {{ available_updates | join('\n') }}
         headers:
           Content-Type: application/json
         status_code: 204
-
-    - name: Send Discord notification for autoremove packages
-      when: autoremove_packages.stdout_lines | length > 0
-      uri:
-        url: '{{ webhook_url }}'
-        method: POST
-        body_format: json
-        body:
-          content: |
-            Packages that can be autoremoved on {{ inventory_hostname }}:
-            {{ autoremove_packages.stdout }}
-        headers:
-          Content-Type: application/json
-        status_code: 204
+      when: available_updates | length > 0 and kernel_updates | length == 0
