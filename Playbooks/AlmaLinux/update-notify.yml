@@ -9,7 +9,8 @@
       # Autoremove unnecessary packages
     - name: Remove unneeded packages
       command: dnf autoremove -y
-      changed_when: true
+      register: autoremove_output
+      changed_when: "'Dependencies resolved.' not in autoremove_output.stdout"     
       
     - name: Get list of available updates
       command: dnf list updates --quiet
