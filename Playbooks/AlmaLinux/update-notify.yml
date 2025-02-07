@@ -6,6 +6,11 @@
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
+      # Autoremove unnecessary packages
+    - name: Remove unneeded packages
+      command: dnf autoremove -y
+      changed_when: true
+      
     - name: Get list of available updates
       command: dnf list updates --quiet
       register: dnf_updates
@@ -27,7 +32,7 @@
         body_format: json
         body:
           content: |
-            🚀 Kernel updates available on **{{ inventory_hostname }}**:
+            Kernel updates available on **{{ inventory_hostname }}**:
             {{ kernel_updates | join('\n') }}
         headers:
           Content-Type: application/json
@@ -41,7 +46,7 @@
         body_format: json
         body:
           content: |
-            📌 Updates available on **{{ inventory_hostname }}**:
+            Generic Updates available on **{{ inventory_hostname }}**:
             {{ available_updates | join('\n') }}
         headers:
           Content-Type: application/json

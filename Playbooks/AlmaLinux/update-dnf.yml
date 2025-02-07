@@ -17,11 +17,6 @@
         state: latest
         update_cache: yes
 
-    # Autoremove unnecessary packages
-    - name: Remove unneeded packages
-      command: dnf autoremove -y
-      changed_when: true
-
     # Check if reboot is required
     - name: Check if system reboot is required
       command: needs-restarting -r
