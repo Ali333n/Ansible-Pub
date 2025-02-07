@@ -21,6 +21,16 @@
       until: running_containers.stdout_lines | length > 0
       changed_when: false
 
+    - name: Prune non-dangling images
+      community.docker.docker_prune:
+        containers: false
+        images: true
+        images_filters:
+          dangling: false
+        networks: false
+        volumes: false
+        builder_cache: false
+
     - name: Send completion message to Discord
       uri:
         url: '{{ webhook_url }}'
