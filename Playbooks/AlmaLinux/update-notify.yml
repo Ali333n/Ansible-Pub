@@ -34,7 +34,9 @@
         body:
           content: |
             Kernel updates available on **{{ inventory_hostname }}**:
+            ```
             {{ kernel_updates | join('\n') }}
+            ```
         headers:
           Content-Type: application/json
         status_code: 204
@@ -48,8 +50,11 @@
         body:
           content: |
             Generic Updates available on **{{ inventory_hostname }}**:
+            ```
             {{ available_updates | join('\n') }}
+            ```
         headers:
           Content-Type: application/json
         status_code: 204
       when: available_updates | length > 0 and kernel_updates | length == 0
+      
