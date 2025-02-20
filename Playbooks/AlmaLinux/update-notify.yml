@@ -25,12 +25,10 @@
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body:
-          content: |
-            🚀 **Kernel updates available on {{ inventory_hostname }}**:
-            ```
-            {{ kernel_updates | join('\n') }}
-            ```
+        body: >
+          {
+            "content": "🚀 **Kernel updates available on {{ inventory_hostname }}**:\n```{{ kernel_updates | join('\n') }}```"
+          }
         headers:
           Content-Type: application/json
         status_code: 204
@@ -41,12 +39,10 @@
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body:
-          content: |
-            📌 **Generic updates available on {{ inventory_hostname }}**:
-            ```
-            {{ available_updates | join('\n') }}
-            ```
+        body: >
+          {
+            "content": "📌 **Generic updates available on {{ inventory_hostname }}**:\n```{{ available_updates | join('\\n') }}```"
+          }
         headers:
           Content-Type: application/json
         status_code: 204
