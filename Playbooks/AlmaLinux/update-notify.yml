@@ -12,37 +12,23 @@
       changed_when: false
       failed_when: false
 
-    - name: Parse update list
+    - name: Parse update list (nur Zeilen, die mit Buchstabe/Zahl anfangen)
       set_fact:
-        available_updates: "{{ dnf_updates.stdout_lines | select('search', '^[a-zA-Z0-9]') | list }}"
+        available_updates: "{{ dnf_updates.stdout_lines | select('match', '^[a-zA-Z0-9]') | list }}"
 
     - name: Identify Kernel updates
       set_fact:
         kernel_updates: "{{ available_updates | select('search', 'kernel') | list }}"
 
-    - name: Set formatted message for kernel updates
-      set_fact:
-        kernel_message: |
-          🚀 **Kernel updates available on {{ inventory_hostname }}**:
-          ```
-          {{ kernel_updates | join('\n') }}
-          ```
-
-    - name: Set formatted message for generic updates
-      set_fact:
-        generic_message: |
-          📌 **Generic updates available on {{ inventory_hostname }}**:
-          ```
-          {{ available_updates | join('\n') }}
-          ```
-
     - name: Send Discord message if kernel updates are available
       uri:
         url: "{{ webhook_url }}"
         method: POST
-        body_format: json
-        body:
-          content: "{{ kernel_message }}"
+        body_format: raw
+        body: |
+          {
+            "content": "🚀 **Kernel updates available on {{ inventory_hostname }}**:\n```\n{{ kernel_updates | join('\n') }}\n```"
+          }
         headers:
           Content-Type: "application/json"
         status_code: 204
@@ -52,9 +38,11 @@
       uri:
         url: "{{ webhook_url }}"
         method: POST
-        body_format: json
-        body:
-          content: "{{ generic_message }}"
+        body_format: raw
+        body: |
+          {
+            "content": "📌 **Generic updates available on {{ inventory_hostname }}**:\n```\n{{ available_updates | join('\n') }}\n```"
+          }
         headers:
           Content-Type: "application/json"
         status_code: 204
