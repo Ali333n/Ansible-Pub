@@ -1,0 +1,64 @@
+# DO NOT CHANGE
+#################################
+# local-address IP addresses to listen on, separated by spaces or commas. Also accepts ports.
+local-address={{ ansible_default_ipv4.address }}
+#################################
+# local-port    port to listen on
+local-port=53
+
+
+# Input and Forward
+#################################
+# allow-from    If set, only allow these comma separated netmasks to recurse
+allow-from={{ allow_from }}
+#################################
+# forward-zones-recurse Zones for which we forward queries with recursion bit, comma separated domain=ip pairs
+forward-zones-recurse={{ forward_zones_recurse }}
+
+
+# performance
+#################################
+# threads       Launch this number of threads
+threads={{ threads }}
+
+# Log
+#################################
+# loglevel      Amount of logging. Higher is more. Do not set below 3
+loglevel={{ loglevel }}
+#################################
+# quiet Suppress logging of questions and answers
+quiet={{ quiet }}
+#################################
+# log-timestamp Print timestamps in log lines, useful to disable when running with a tool that timestamps stdout already
+log-timestamp={{ log_timestamp }}
+
+
+# Security
+#################################
+# dnssec        DNSSEC mode: off/process-no-validate/process (default)/log-fail/validate
+dnssec={{ dnssec }}
+#################################
+# security-poll-suffix  Domain name from which to query security update notifications
+#
+# security-poll-suffix=secpoll.powerdns.com.
+security-poll-suffix={{ security_poll_suffix }}
+
+
+# Config Files
+#################################
+# config-dir    Location of configuration directory (recursor.conf)
+config-dir={{ config_dir }}
+#################################
+# hint-file     If set, load root hints from this file
+hint-file={{ hint_file }}
+#################################
+# include-dir   Include *.conf files from this directory
+include-dir={{ include_dir }}
+#################################
+# lua-config-file       More powerful configuration options
+lua-config-file={{ lua_config_file }}
+#################################
+# public-suffix-list-file       Path to the Public Suffix List file, if any
+public-suffix-list-file={{ public_suffix_list_file }}
+
+

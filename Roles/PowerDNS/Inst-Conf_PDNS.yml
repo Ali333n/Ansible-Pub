@@ -1,0 +1,36 @@
+---
+- name: Install and configure PowerDNS Recursor
+  hosts: all
+  become: yes
+  vars_files:
+    - vars/main.yml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: Install PowerDNS Recursor
+      apt:
+        name: pdns-recursor
+        state: present
+        update_cache: yes
+
+    - name: Backup existing PowerDNS configuration if not already backed up
+      ansible.builtin.command:
+        cmd: cp /etc/powerdns/recursor.conf /etc/powerdns/recursor.conf.bak
+      args:
+        creates: /etc/powerdns/recursor.conf.bak
+
+    - name: Configure PowerDNS Recursor
+      template:
+        src: recursor.conf.j2
+        dest: /etc/powerdns/recursor.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: Restart PowerDNS Recursor
+
+  handlers:
+    - name: Restart PowerDNS Recursor
+      systemd:
+        name: pdns-recursor
+        state: restarted
