@@ -4,21 +4,7 @@
   gather_facts: true
 
   tasks:
-    # Test if python3-apt is installed
-    - name: Show Python interpreter
-      debug:
-        msg: "Interpreter: {{ ansible_python_interpreter }}"
-
-    - name: Test python3-apt import
-      raw: /usr/bin/python3 -c "import apt; print('python3-apt OK')"
-      register: apt_import_test
-      ignore_errors: yes
-
-    - name: Show python3-apt check
-      debug:
-        var: apt_import_test.stdout
-
-    # Upgrade packages
+     # Upgrade packages
     - name: upgrade apt packages
       become: true
       ansible.builtin.apt:
