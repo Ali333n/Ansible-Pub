@@ -10,6 +10,7 @@
         name: 
         - dnf-utils
         state: present
+      when: "'dnf-utils' not in ansible_facts.packages"
 
     # Remove unneeded packages
     - name: Remove unneeded packages
@@ -30,6 +31,7 @@
       register: reboot_required
       failed_when: reboot_required.rc not in [0, 1]
       changed_when: reboot_required.rc == 1
+      when: ansible_facts['os_family'] == 'RedHat'
 
     # Send Discord message when reboot is required
     - name: Send Discord message
@@ -41,9 +43,11 @@
         headers:
           Content-Type: application/json
         status_code: 204
+      # Send the Discord message only if a reboot is required
       when: reboot_required.rc == 1
 
     # Rebooting
     - name: Rebooting Systems
       reboot:
+        msg: "Rebooting due to package updates"
       when: reboot_required.rc == 1
