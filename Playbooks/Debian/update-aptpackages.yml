@@ -4,30 +4,12 @@
   gather_facts: true
 
   tasks:
-    # Install required packages
-    - name: Install required packages
-      become: true
-      ansible.builtin.apt:
-        name:
-          - gnupg2
-          - python3-apt
-        state: present
-
-    # Add required Apt-Repository
-    - name: Install required packages
-      become: true
-      ansible.builtin.apt_repository:
-        install_python_apt: true
-        repo: ppa:ansible/ansible
-
     # Upgrade packages
     - name: upgrade apt packages
       become: true
       ansible.builtin.apt:
-        force_apt_get: true
         autoclean: true
         update_cache: true
-        cache_valid_time: 3600
         autoremove: true
         upgrade: dist
 
