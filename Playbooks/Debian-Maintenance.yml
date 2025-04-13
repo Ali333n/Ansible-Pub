@@ -1,0 +1,8 @@
+- name: Cleanup old kernels on Debian-based systems
+  hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    
+  roles:
+    - role: cleanup_kernels
+      become: true
