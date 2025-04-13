@@ -11,10 +11,15 @@
         - dnf-utils
         state: present
 
+    # Remove unneeded packages
+    - name: Remove unneeded packages
+      dnf5:
+        autoremove: true
+        state: absent
+
     # Upgrade all packages
     - name: Upgrade all packages with DNF
       dnf5:
-        autoremove: true
         update_cache: true
         name: '*'
         state: latest
