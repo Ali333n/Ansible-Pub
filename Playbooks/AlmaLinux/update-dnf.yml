@@ -9,18 +9,17 @@
       dnf:
         name: 
         - dnf-utils
-        - python3-libdnf5
         state: present
 
     # Remove unneeded packages
     - name: Remove unneeded packages
-      dnf5:
+      dnf:
         autoremove: true
         state: absent
 
     # Upgrade all packages
     - name: Upgrade all packages with DNF
-      dnf5:
+      dnf:
         update_cache: true
         name: '*'
         state: latest
