@@ -7,11 +7,14 @@
     # Upgrade packages
     - name: upgrade apt packages
       become: true
-      apt:
+      ansible.builtin.apt:
+        force_apt_get: true
+        install_python_apt: true
         autoclean: true
         update_cache: true
-        upgrade: true
+        cache_valid_time: 3600
         autoremove: true
+        upgrade: dist
 
     # Check if reboot is required
     - name: check if system reboot is required
