@@ -9,6 +9,7 @@
       become: true
       ansible.builtin.apt_repository:
         install_python_apt: true
+        repo: ppa:ansible/ansible
 
     # Upgrade packages
     - name: upgrade apt packages
