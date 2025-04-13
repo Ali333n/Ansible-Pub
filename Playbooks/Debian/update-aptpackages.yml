@@ -1,16 +1,17 @@
 - hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
     # Upgrade packages
     - name: upgrade apt packages
       become: true
       apt:
-        update: yes
-        upgrade: yes
-        autoremove: yes
+        autoclean: true
+        update_cache: true
+        upgrade: true
+        autoremove: true
 
     # Check if reboot is required
     - name: check if system reboot is required
