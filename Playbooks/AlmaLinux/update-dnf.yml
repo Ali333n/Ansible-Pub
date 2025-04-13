@@ -1,21 +1,22 @@
 - hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    
-  become: yes
+
   tasks:
     # Install dnf-utils if not already installed (needed for needs-restarting)
-    - name: Install dnf-utils (for needs-restarting command)
+    - name: Install dnf-utils
       dnf:
-        name: dnf-utils
+        name: 
+        - dnf-utils
         state: present
 
     # Upgrade all packages
     - name: Upgrade all packages with DNF
-      dnf:
+      dnf5:
+        autoremove: true
+        update_cache: true
         name: '*'
         state: latest
-        update_cache: yes
 
     # Check if reboot is required
     - name: Check if system reboot is required
