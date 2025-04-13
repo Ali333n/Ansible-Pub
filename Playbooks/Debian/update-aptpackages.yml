@@ -9,7 +9,6 @@
       become: true
       ansible.builtin.apt:
         force_apt_get: true
-        install_python_apt: true
         autoclean: true
         update_cache: true
         cache_valid_time: 3600
