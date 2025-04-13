@@ -10,7 +10,6 @@
         name: 
         - dnf-utils
         state: present
-      when: "'dnf-utils' not in ansible_facts.packages"
 
     # Remove unneeded packages
     - name: Remove unneeded packages
