@@ -7,6 +7,15 @@
     # Install required packages
     - name: Install required packages
       become: true
+      ansible.builtin.apt:
+        name:
+          - gnupg2
+          - python3-apt
+        state: present
+
+    # Add required Apt-Repository
+    - name: Install required packages
+      become: true
       ansible.builtin.apt_repository:
         install_python_apt: true
         repo: ppa:ansible/ansible
