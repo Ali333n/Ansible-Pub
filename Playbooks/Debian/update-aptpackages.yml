@@ -34,5 +34,6 @@
 
     # Rebooting
     - name: Rebooting Systems
+      become: true
       reboot:
       when: reboot_required.stat.exists == true
