@@ -5,7 +5,7 @@
 
   tasks:
     # Upgrade packages
-    - name: upgrade apt packages
+    - name: Upgrade APT packages
       become: true
       ansible.builtin.apt:
         autoclean: true
@@ -14,26 +14,23 @@
         upgrade: dist
 
     # Check if reboot is required
-    - name: check if system reboot is required
+    - name: Check if system reboot is required
       become: true
-      stat:
+      ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required
 
-    # Send Discord message when reboot is required
-    - name: Send Discord message
-      uri:
-        url: '{{ webhook_url }}'
+    # Send Discord message if reboot is required
+    - name: Send Discord message if reboot required
+      ansible.builtin.uri:
+        url: "{{ webhook_url }}"
         method: POST
         body_format: json
-        body: '{"content": "Rebooting {{ inventory_hostname }}"}'
+        body: >
+          {
+            "content": "{{ inventory_hostname }} benötigt einen Neustart!"
+          }
         headers:
-          Content-Type: application/json
+          Content-Type: "application/json"
         status_code: 204
       when: reboot_required.stat.exists
-
-    # Rebooting
-    - name: Rebooting Systems
-      become: true
-      reboot:
-      when: reboot_required.stat.exists == true
