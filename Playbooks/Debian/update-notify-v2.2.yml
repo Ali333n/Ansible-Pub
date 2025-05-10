@@ -1,79 +1,28 @@
 ---
-- name: Check for Updates
+- name: Check for Updates and Notify via Discord
   hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
   gather_facts: yes
 
   tasks:
-    - name: Run apt-get update command
+    - name: Check for available updates using Ansible apt module
       become: yes
-      shell: apt update
+      apt:
+        update_cache: true
+        upgrade: list
+      register: apt_updates
 
-    - name: Check for available updates
-      become: yes
-      shell: apt list --upgradable | grep -v "Listing..."
-      register: available_updates
-      failed_when: false
-      changed_when: false
-
-    - name: Set default kernel_updates to an empty list
-      set_fact:
-        kernel_updates: []
-
-    - name: Search for Kernel updates if updates are available
-      set_fact:
-        kernel_updates: "{{ available_updates.stdout_lines | select('search', 'kernel') | list }}"
-      when: available_updates.stdout_lines | length > 0
-
-    - name: Set default autoremove_packages to an empty list
-      set_fact:
-        autoremove_packages: []
-
-    - name: Check if there are packages to autoremove
-      become: yes
-      shell: apt-get -s autoremove | grep "^Remv"
-      register: autoremove_packages
-      failed_when: false
-      changed_when: false
-
-    - name: Send Discord notification with Kernel updates if available
-      when: kernel_updates | length > 0
+    - name: Send Discord notification if updates are available
+      when: apt_updates.upgradeable_packages | length > 0
       uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
         body:
           content: |
-            Kernel updates are available on {{ inventory_hostname }}:
-            {{ kernel_updates | join('\n') }}
-        headers:
-          Content-Type: application/json
-        status_code: 204
-
-    - name: Send Discord notification for general updates if no Kernel updates
-      when: kernel_updates | length == 0 and available_updates.stdout_lines | length > 0
-      uri:
-        url: '{{ webhook_url }}'
-        method: POST
-        body_format: json
-        body:
-          content: |
-            Updates are available on {{ inventory_hostname }}.
-        headers:
-          Content-Type: application/json
-        status_code: 204
-
-    - name: Send Discord notification for autoremove packages
-      when: autoremove_packages.stdout_lines | length > 0
-      uri:
-        url: '{{ webhook_url }}'
-        method: POST
-        body_format: json
-        body:
-          content: |
-            Packages that can be autoremoved on {{ inventory_hostname }}:
-            {{ autoremove_packages.stdout }}
+            Updates are available on {{ inventory_hostname }}:
+            {{ apt_updates.upgradeable_packages | map(attribute='package') | join(', ') }}
         headers:
           Content-Type: application/json
         status_code: 204
