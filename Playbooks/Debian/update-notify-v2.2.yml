@@ -19,10 +19,10 @@
 
     - name: Anzahl upgradebarer Pakete ermitteln
       set_fact:
-        upgrades_available: "{{ apt_sim.stdout | regex_findall('^Inst') | length }}"
+        upgrades_available: "{{ (apt_sim.stdout | regex_findall('^Inst') | length) | int }}"
 
     - name: Send Discord notification if updates are available
-      when: upgrades_available > 0
+      when: upgrades_available | int > 0
       uri:
         url: '{{ webhook_url }}'
         method: POST
