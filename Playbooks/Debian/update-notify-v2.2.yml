@@ -6,23 +6,20 @@
   gather_facts: yes
 
   tasks:
-    - name: Update package cache and check for available updates
+    - name: Refresh package cache
       become: yes
       apt:
         update_cache: true
-      register: apt_cache_update
 
-    - name: List available updates
+    - name: Check for available updates
       become: yes
-      apt:
-        update_cache: no
-        upgrade: safe
-        dry_run: true
-      register: apt_updates
+      shell: apt list --upgradable 2>/dev/null | grep -v "Listing..."
+      register: available_updates
       changed_when: false
+      failed_when: false
 
     - name: Send Discord notification if updates are available
-      when: apt_updates.changes.packages | length > 0
+      when: available_updates.stdout_lines | length > 0
       uri:
         url: '{{ webhook_url }}'
         method: POST
@@ -30,7 +27,7 @@
         body:
           content: |
             Updates are available on {{ inventory_hostname }}:
-            {{ apt_updates.changes.packages | list | join(', ') }}
+            {{ available_updates.stdout_lines | join('\n') }}
         headers:
           Content-Type: application/json
         status_code: 204
