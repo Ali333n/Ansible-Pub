@@ -13,7 +13,7 @@
 
     - name: Check for available updates
       become: yes
-      shell: apt list --upgradable 2>/dev/null | grep -Ev "^Listing|^$"
+      shell: apt list --upgradable 2>/dev/null | grep -Ev "^Auflistung|^$"
       register: available_updates
       changed_when: false
       failed_when: false
