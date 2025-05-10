@@ -6,20 +6,23 @@
   gather_facts: yes
 
   tasks:
-    - name: Refresh package cache
-      become: yes
+    - name: Cache aktualisieren
       apt:
         update_cache: true
-
-    - name: Check for available updates
       become: yes
-      shell: apt list --upgradable 2>/dev/null | grep -v "Listing..."
-      register: available_updates
+
+    - name: Verfügbare Updates simulieren
+      shell: "LC_ALL=C apt-get -s -o Debug::NoLocking=true dist-upgrade"
+      register: apt_sim
       changed_when: false
-      failed_when: false
+      become: yes
+
+    - name: Anzahl upgradebarer Pakete ermitteln
+      set_fact:
+        upgrades_available: "{{ apt_sim.stdout | regex_findall('^Inst') | length }}"
 
     - name: Send Discord notification if updates are available
-      when: available_updates.stdout_lines | length > 0
+      when: upgrades_available > 0
       uri:
         url: '{{ webhook_url }}'
         method: POST
@@ -27,7 +30,7 @@
         body:
           content: |
             Updates are available on {{ inventory_hostname }}:
-            {{ available_updates.stdout_lines | join('\n') }}
+            Total packages: {{ upgrades_available }}
         headers:
           Content-Type: application/json
         status_code: 204
