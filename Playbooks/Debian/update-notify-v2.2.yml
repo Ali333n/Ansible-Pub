@@ -12,7 +12,10 @@
       become: true
 
     - name: Verfügbare Updates simulieren
-      ansible.builtin.shell: "LC_ALL=C apt-get -s -o Debug::NoLocking=true dist-upgrade"
+      ansible.builtin.command:
+        cmd: apt-get -s -o Debug::NoLocking=true dist-upgrade
+        environ:
+          LC_ALL: C
       register: apt_sim
       changed_when: false
       become: true
