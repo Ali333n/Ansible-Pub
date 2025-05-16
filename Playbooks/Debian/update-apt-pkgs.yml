@@ -1,11 +1,12 @@
-- hosts: all
+- name: Update and Reboot Debian Systems
+  hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
   gather_facts: true
 
   tasks:
     # Upgrade packages
-    - name: upgrade apt packages
+    - name: Upgrade Apt Packages
       become: true
       ansible.builtin.apt:
         autoclean: true
@@ -14,15 +15,15 @@
         upgrade: dist
 
     # Check if reboot is required
-    - name: check if system reboot is required
+    - name: Check If System Reboot Is Required
       become: true
-      stat:
+      ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required
 
     # Send Discord message when reboot is required
-    - name: Send Discord message
-      uri:
+    - name: Send Discord Message
+      ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
@@ -35,5 +36,5 @@
     # Rebooting
     - name: Rebooting Systems
       become: true
-      reboot:
-      when: reboot_required.stat.exists == true
+      ansible.builtin.reboot:
+      when: reboot_required.stat.exists
