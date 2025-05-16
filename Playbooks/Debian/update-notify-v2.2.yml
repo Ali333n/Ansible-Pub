@@ -3,27 +3,27 @@
   hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
     - name: Cache aktualisieren
-      apt:
+      ansible.builtin.apt:
         update_cache: true
-      become: yes
+      become: true
 
     - name: Verfügbare Updates simulieren
-      shell: "LC_ALL=C apt-get -s -o Debug::NoLocking=true dist-upgrade"
+      ansible.builtin.shell: "LC_ALL=C apt-get -s -o Debug::NoLocking=true dist-upgrade"
       register: apt_sim
       changed_when: false
-      become: yes
+      become: true
 
     - name: Anzahl upgradebarer Pakete ermitteln
-      set_fact:
+      ansible.builtin.set_fact:
         upgrades_available: "{{ (apt_sim.stdout | regex_findall('^Inst') | length) | int }}"
 
     - name: Send Discord notification if updates are available
       when: upgrades_available | int > 0
-      uri:
+      ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
