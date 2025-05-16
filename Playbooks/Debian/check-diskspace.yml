@@ -21,8 +21,8 @@
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body: '{"content": "Disk space on {{ inventory_hostname }} is above 80%! Current usage is {{ disk_usage.stdout }}."}'
+        body: '{"content": "Disk space on {{ inventory_hostname }} is above 85%! Current usage is {{ disk_usage.stdout }}."}'
         headers:
           Content-Type: application/json
         status_code: 204
-      when: disk_usage.stdout[:-1]|int > 80
+      when: disk_usage.stdout[:-1]|int > 85
