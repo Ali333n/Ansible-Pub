@@ -11,18 +11,17 @@
         update_cache: true
       become: true
 
-    - name: Verfügbare Updates simulieren
-      ansible.builtin.command:
-        cmd: apt-get -s -o Debug::NoLocking=true dist-upgrade
-        environ:
-          LC_ALL: C
+    - name: Verfügbare Updates simulieren (Listen verfügbarer Pakete)
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: safe
       register: apt_sim
       changed_when: false
       become: true
 
     - name: Anzahl upgradebarer Pakete ermitteln
       ansible.builtin.set_fact:
-        upgrades_available: "{{ (apt_sim.stdout | regex_findall('^Inst') | length) | int }}"
+        upgrades_available: "{{ apt_sim.packages | length }}"
 
     - name: Send Discord notification if updates are available
       when: upgrades_available | int > 0
