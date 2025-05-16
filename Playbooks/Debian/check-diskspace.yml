@@ -14,9 +14,9 @@
       changed_when: false
       check_mode: false
       register: disk_usage
-    # Send Discord message when disk space is over 80%
+
     - name: Send Discord message
-      ansible.builtin.uri:    
+      ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
@@ -24,4 +24,4 @@
         headers:
           Content-Type: application/json
         status_code: 204
-      when: disk_usage.stdout[:-1]|int > 80
+      when: disk_usage.stdout[:-1] | int > 80 (warning)

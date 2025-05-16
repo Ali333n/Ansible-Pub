@@ -6,27 +6,27 @@
   tasks:
     # Install dnf-utils if not already installed (needed for needs-restarting)
     - name: Install dnf-utils
-      dnf:
-        name: 
-        - dnf-utils
+      ansible.builtin.dnf:
+        name:
+          - dnf-utils
         state: present
 
     # Remove unneeded packages
     - name: Remove unneeded packages
-      dnf:
+      ansible.builtin.dnf:
         autoremove: true
         state: absent
 
     # Upgrade all packages
     - name: Upgrade all packages with DNF
-      dnf:
+      ansible.builtin.dnf:
         update_cache: true
         name: '*'
         state: latest
 
     # Check if reboot is required
     - name: Check if system reboot is required
-      command: needs-restarting -r
+      ansible.builtin.command: needs-restarting -r
       register: reboot_required
       failed_when: reboot_required.rc not in [0, 1]
       changed_when: reboot_required.rc == 1
@@ -34,7 +34,7 @@
 
     # Send Discord message when reboot is required
     - name: Send Discord message
-      uri:
+      ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
@@ -47,6 +47,6 @@
 
     # Rebooting
     - name: Rebooting Systems
-      reboot:
+      ansible.builtin.reboot:
         msg: "Rebooting due to package updates"
       when: reboot_required.rc == 1
