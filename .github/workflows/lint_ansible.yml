@@ -1,4 +1,4 @@
-name: Ansible files & Deployment 
+name: Ansible Lint
 
 on:
   push:
@@ -9,7 +9,23 @@ on:
       - 'Playbooks/**'
 
 jobs:
-  ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
-    with:
-      args: '-p Playbooks -x var-naming[no-role-prefix] -x syntax-check[unknown-module]'
+  build:
+    name: Ansible Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install latest Ansible Lint
+        run: pip install --upgrade ansible-lint
+
+      - name: Run Ansible Lint
+        uses: ansible/ansible-lint@main
+        with:
+          args: '-p Playbooks -x var-naming[no-role-prefix]'
+          setup_python: "false"
+          working_directory: ""
