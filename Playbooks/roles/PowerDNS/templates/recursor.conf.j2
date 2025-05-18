@@ -6,57 +6,51 @@ local-address={{ ansible_default_ipv4.address }}
 # local-port    port to listen on
 local-port=53
 
-
 # Input and Forward
 #################################
 # allow-from    If set, only allow these comma separated netmasks to recurse
-allow-from={{ PowerDNS_allow_from }}
+allow-from={{ powerdns_allow_from }}
 #################################
 # forward-zones-recurse Zones for which we forward queries with recursion bit, comma separated domain=ip pairs
-forward-zones-recurse={{ PowerDNS_forward_zones_recurse }}
-
+forward-zones-recurse={{ powerdns_forward_zones_recurse }}
 
 # Performance
 #################################
 # threads       Launch this number of threads
-threads={{ PowerDNS_threads }}
+threads={{ powerdns_threads }}
 
 # Log
 #################################
 # loglevel      Amount of logging. Higher is more. Do not set below 3
-loglevel={{ PowerDNS_loglevel }}
+loglevel={{ powerdns_loglevel }}
 #################################
 # quiet Suppress logging of questions and answers
-quiet={{ PowerDNS_quiet }}
+quiet={{ powerdns_quiet }}
 #################################
 # log-timestamp Print timestamps in log lines, useful to disable when running with a tool that timestamps stdout already
-log-timestamp={{ PowerDNS_log_timestamp }}
-
+log-timestamp={{ powerdns_log_timestamp }}
 
 # Security
 #################################
 # dnssec        DNSSEC mode: off/process-no-validate/process (default)/log-fail/validate
-dnssec={{ PowerDNS_dnssec }}
+dnssec={{ powerdns_dnssec }}
 #################################
 # security-poll-suffix  Domain name from which to query security update notifications
-#
-# security-poll-suffix=secpoll.powerdns.com.
-security-poll-suffix={{ PowerDNS_security_poll_suffix }}
-
+security-poll-suffix={{ powerdns_security_poll_suffix }}
 
 # Config Files
 #################################
 # config-dir    Location of configuration directory (recursor.conf)
-config-dir={{ PowerDNS_config_dir }}
+config-dir={{ powerdns_config_dir }}
 #################################
 # hint-file     If set, load root hints from this file
-hint-file={{ PowerDNS_hint_file }}
+hint-file={{ powerdns_hint_file }}
 #################################
 # include-dir   Include *.conf files from this directory
-include-dir={{ PowerDNS_include_dir }}
+include-dir={{ powerdns_include_dir }}
 #################################
 # lua-config-file       More powerful configuration options
-lua-config-file={{ PowerDNS_lua_config_file }}
+lua-config-file={{ powerdns_lua_config_file }}
 #################################
 # public-suffix-list-file       Path to the Public Suffix List file, if any
-public-suffix-list-file={{ PowerDNS_public_suffix_list_file }}
+public-suffix-list-file={{ powerdns_public_suffix_list_file }}
