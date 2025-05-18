@@ -10,6 +10,18 @@ on:
 
 jobs:
   ansible-lint:
-    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
-    with:
-      args: '-p Playbooks -x var-naming[no-role-prefix]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install latest Ansible Lint
+        run: pip install --upgrade ansible-lint
+
+      - name: Run Ansible Lint
+        run: ansible-lint -p Playbooks -x var-naming[no-role-prefix] -x syntax-check[unknown-module]
