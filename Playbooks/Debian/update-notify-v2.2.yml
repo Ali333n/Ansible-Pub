@@ -21,7 +21,7 @@
 
     - name: Anzahl upgradebarer Pakete ermitteln
       ansible.builtin.set_fact:
-        upgrades_available: "{{ apt_sim.packages | length }}"
+        upgrades_available: "{{ apt_sim.upgradeable | length }}"
 
     - name: Send Discord notification if updates are available
       when: upgrades_available | int > 0
