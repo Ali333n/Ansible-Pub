@@ -10,55 +10,54 @@ local-port=53
 # Input and Forward
 #################################
 # allow-from    If set, only allow these comma separated netmasks to recurse
-allow-from={{ allow_from }}
+allow-from={{ PowerDNS_allow_from }}
 #################################
 # forward-zones-recurse Zones for which we forward queries with recursion bit, comma separated domain=ip pairs
-forward-zones-recurse={{ forward_zones_recurse }}
+forward-zones-recurse={{ PowerDNS_forward_zones_recurse }}
 
 
 # performance
 #################################
 # threads       Launch this number of threads
-threads={{ threads }}
+threads={{ PowerDNS_threads }}
 
 # Log
 #################################
 # loglevel      Amount of logging. Higher is more. Do not set below 3
-loglevel={{ loglevel }}
+loglevel={{ PowerDNS_loglevel }}
 #################################
 # quiet Suppress logging of questions and answers
-quiet={{ quiet }}
+quiet={{ PowerDNS_quiet }}
 #################################
 # log-timestamp Print timestamps in log lines, useful to disable when running with a tool that timestamps stdout already
-log-timestamp={{ log_timestamp }}
+log-timestamp={{ PowerDNS_log_timestamp }}
 
 
 # Security
 #################################
 # dnssec        DNSSEC mode: off/process-no-validate/process (default)/log-fail/validate
-dnssec={{ dnssec }}
+dnssec={{ PowerDNS_dnssec }}
 #################################
 # security-poll-suffix  Domain name from which to query security update notifications
 #
 # security-poll-suffix=secpoll.powerdns.com.
-security-poll-suffix={{ security_poll_suffix }}
+security-poll-suffix={{ PowerDNS_security_poll_suffix }}
 
 
 # Config Files
 #################################
 # config-dir    Location of configuration directory (recursor.conf)
-config-dir={{ config_dir }}
+config-dir={{ PowerDNS_config_dir }}
 #################################
 # hint-file     If set, load root hints from this file
-hint-file={{ hint_file }}
+hint-file={{ PowerDNS_hint_file }}
 #################################
 # include-dir   Include *.conf files from this directory
-include-dir={{ include_dir }}
+include-dir={{ PowerDNS_include_dir }}
 #################################
 # lua-config-file       More powerful configuration options
-lua-config-file={{ lua_config_file }}
+lua-config-file={{ PowerDNS_lua_config_file }}
 #################################
 # public-suffix-list-file       Path to the Public Suffix List file, if any
-public-suffix-list-file={{ public_suffix_list_file }}
-
+public-suffix-list-file={{ PowerDNS_public_suffix_list_file }}
 

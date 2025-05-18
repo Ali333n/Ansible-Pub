@@ -1,53 +1,53 @@
 # Input and Forward
 #################################
 # allow-from    If set, only allow these comma separated netmasks to recurse
-allow_from: "192.168.1.0/24"
+PowerDNS_allow_from: "192.168.1.0/24"
 #################################
 # forward-zones-recurse Zones for which we forward queries with recursion bit, comma separated domain=ip pairs
-forward_zones_recurse: ".=1.1.1.1,1.0.0.1,8.8.8.8,8.8.4.4"
+PowerDNS_forward_zones_recurse: ".=1.1.1.1,1.0.0.1,8.8.8.8,8.8.4.4"
 
 
 # performance
 #################################
 # threads       Launch this number of threads
-threads: 2
+PowerDNS_threads: 2
 
 
 # Log
 #################################
 # loglevel      Amount of logging. Higher is more. Do not set below 3
-loglevel: 6
+PowerDNS_loglevel: 6
 #################################
 # quiet Suppress logging of questions and answers
-quiet: "no"
+PowerDNS_quiet: "no"
 #################################
 # log-timestamp Print timestamps in log lines, useful to disable when running with a tool that timestamps stdout already
-log_timestamp: "no"
+PowerDNS_log_timestamp: "no"
 
 
 # Security
 #################################
 # dnssec        DNSSEC mode: off/process-no-validate/process (default)/log-fail/validate
-dnssec: "validate"
+PowerDNS_dnssec: "validate"
 #################################
 # security-poll-suffix  Domain name from which to query security update notifications
 # security-poll-suffix=secpoll.powerdns.com.
-security_poll_suffix:
+PowerDNS_security_poll_suffix:
 
 
 # Config Files
 #################################
 # config-dir    Location of configuration directory (recursor.conf)
-config_dir: /etc/powerdns
+PowerDNS_config_dir: /etc/powerdns
 #################################
 # hint-file     If set, load root hints from this file
-hint_file: /usr/share/dns/root.hints
+PowerDNS_hint_file: /usr/share/dns/root.hints
 #################################
 # include-dir   Include *.conf files from this directory
-include_dir: /etc/powerdns/recursor.d
+PowerDNS_include_dir: /etc/powerdns/recursor.d
 #################################
 # lua-config-file       More powerful configuration options
-lua_config_file: /etc/powerdns/recursor.lua
+PowerDNS_lua_config_file: /etc/powerdns/recursor.lua
 #################################
 # public-suffix-list-file       Path to the Public Suffix List file, if any
-public_suffix_list_file: /usr/share/publicsuffix/public_suffix_list.dat
+PowerDNS_public_suffix_list_file: /usr/share/publicsuffix/public_suffix_list.dat
