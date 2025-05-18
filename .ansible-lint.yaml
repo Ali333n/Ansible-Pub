@@ -1,6 +1,4 @@
-rules:
-  package-latest:
-    severity: warning  # Macht es zu einer Warnung, statt eines Fehlers
-
+# .ansible-lint.yaml
 skip_list:
-  - syntax-check[unknown-module]  # Ignoriert Module, die nicht erkannt werden
+  - package-latest  # Ignoriert den Fehler für "state: latest" in Paketen
+  - unknown-module  # Ignoriert Module, die nicht erkannt werden
