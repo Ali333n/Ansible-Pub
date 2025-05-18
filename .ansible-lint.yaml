@@ -1,4 +1,7 @@
 # .ansible-lint.yaml
 skip_list:
   - package-latest  # Ignoriert den Fehler für "state: latest" in Paketen
-  - unknown-module  # Ignoriert Module, die nicht erkannt werden
+
+allow_list:
+  syntax-check:
+    - community.docker.docker_prune  # Erlaubt spezifisch das Docker-Prune-Modul
