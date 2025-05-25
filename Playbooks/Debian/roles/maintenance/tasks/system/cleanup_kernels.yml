@@ -1,11 +1,15 @@
 ---
 - name: Get current running kernel version
   ansible.builtin.shell: "set -o pipefail && uname -r | cut -d'-' -f1,2"
+  args:
+    executable: /bin/bash
   register: current_kernel
   changed_when: false
 
 - name: Get list of installed kernel packages
   ansible.builtin.shell: "set -o pipefail && dpkg --list | grep linux-image | awk '{print $2}'"
+  args:
+    executable: /bin/bash
   register: installed_kernels_raw
   changed_when: false
 
