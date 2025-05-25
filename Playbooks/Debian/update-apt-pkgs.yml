@@ -5,23 +5,20 @@
   gather_facts: true
 
   tasks:
-    # Upgrade packages
     - name: Upgrade Apt Packages
       become: true
       ansible.builtin.apt:
-        autoclean: true
-        update_cache: true
-        autoremove: true
-        upgrade: dist
+        autoclean: 'true'
+        update_cache: 'true'
+        autoremove: 'true'
+        upgrade: 'dist'
 
-    # Check if reboot is required
     - name: Check If System Reboot Is Required
       become: true
       ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required
 
-    # Send Discord message when reboot is required
     - name: Send Discord Message
       ansible.builtin.uri:
         url: '{{ webhook_url }}'
@@ -33,7 +30,6 @@
         status_code: 204
       when: reboot_required.stat.exists
 
-    # Rebooting
     - name: Rebooting Systems
       become: true
       ansible.builtin.reboot:

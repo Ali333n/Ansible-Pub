@@ -5,8 +5,8 @@
       set -euo pipefail
       df -Ph / | awk 'NR==2 {print $5}'
     executable: /bin/bash
-  changed_when: false
-  check_mode: false
+  changed_when: 'false'
+  check_mode: 'false'
   register: disk_usage
 
 - name: Send Discord message if disk space is above 80%
