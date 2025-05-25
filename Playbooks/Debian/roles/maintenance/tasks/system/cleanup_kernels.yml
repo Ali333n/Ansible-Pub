@@ -4,14 +4,14 @@
   args:
     executable: /bin/bash
   register: current_kernel
-  changed_when: 'false'
+  changed_when: false
 
 - name: Get list of installed kernel packages
   ansible.builtin.shell: "set -o pipefail && dpkg --list | grep linux-image | awk '{print $2}'"
   args:
     executable: /bin/bash
   register: installed_kernels_raw
-  changed_when: 'false'
+  changed_when: false
 
 - name: Filter installed kernels (excluding current)
   ansible.builtin.set_fact:
@@ -26,17 +26,17 @@
     kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 2)] if filtered_kernels | length > 2 else [] }}"
 
 - name: Remove old kernels
-  become: 'true'
+  become: true
   ansible.builtin.apt:
     name: "{{ item }}"
     state: absent
-    purge: 'true'
-    force: 'true'
+    purge: true
+    force: true
   loop: "{{ kernels_to_remove }}"
   when: kernels_to_remove | length > 0
 
 - name: Autoremove unused packages after kernel cleanup
-  become: 'true'
+  become: true
   ansible.builtin.apt:
-    autoremove: 'true'
-    purge: 'true'
+    autoremove: true
+    purge: true
