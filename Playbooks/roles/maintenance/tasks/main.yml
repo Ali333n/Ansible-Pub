@@ -1,0 +1,14 @@
+---
+- name: Fail if not a Debian-based system
+  ansible.builtin.fail:
+    msg: "This role only supports Debian-family systems"
+  when: ansible_facts['distribution'] not in ['Debian', 'Ubuntu']
+
+- name: Check disk space before maintenance
+  ansible.builtin.include_tasks: system/check_diskspace.yml
+
+- name: Update system packages
+  ansible.builtin.include_tasks: packages/update_packages.yml
+
+- name: Clean up old kernels
+  ansible.builtin.include_tasks: system/cleanup_kernels.yml
