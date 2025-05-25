@@ -26,6 +26,7 @@
     kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 2)] if filtered_kernels | length > 2 else [] }}"
 
 - name: Remove old kernels
+  become: true
   ansible.builtin.apt:
     name: "{{ item }}"
     state: absent
@@ -35,6 +36,7 @@
   when: kernels_to_remove | length > 0
 
 - name: Autoremove unused packages after kernel cleanup
+  become: true
   ansible.builtin.apt:
     autoremove: true
     purge: true
