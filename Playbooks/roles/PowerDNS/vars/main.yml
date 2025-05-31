@@ -1,23 +1,23 @@
 # Input and Forward
 #################################
 # allow-from    If set, only allow these comma separated netmasks to recurse
-powerdns_allow_from: "192.168.1.0/24"
+powerdns_allow_from: "172.18.0.2/32"
 #################################
 # forward-zones-recurse Zones for which we forward queries with recursion bit, comma separated domain=ip pairs
-powerdns_forward_zones_recurse: ".=1.1.1.1,1.0.0.1,8.8.8.8,8.8.4.4"
+powerdns_forward_zones_recurse: ".=1.1.1.1,.=1.0.0.1,.=8.8.8.8,.=8.8.4.4"
 
 # Performance
 #################################
 # threads       Launch this number of threads
-powerdns_threads: 2
+powerdns_threads: 4
 
 # Log
 #################################
 # loglevel      Amount of logging. Higher is more. Do not set below 3
-powerdns_loglevel: 6
+powerdns_loglevel: 5
 #################################
 # quiet Suppress logging of questions and answers
-powerdns_quiet: "no"
+powerdns_quiet: "yes"
 #################################
 # log-timestamp Print timestamps in log lines, useful to disable when running with a tool that timestamps stdout already
 powerdns_log_timestamp: "no"
