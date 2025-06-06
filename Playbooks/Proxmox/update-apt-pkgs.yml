@@ -7,7 +7,9 @@
   tasks:
     # Get installed kernel packages before upgrade
     - name: Get installed kernel packages before upgrade
-      ansible.builtin.shell: dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
       register: kernel_before
       changed_when: false
 
@@ -22,7 +24,9 @@
 
     # Get installed kernel packages after upgrade
     - name: Get installed kernel packages after upgrade
-      ansible.builtin.shell: dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      ansible.builtin.shell: |
+        set -o pipefail
+        dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
       register: kernel_after
       changed_when: false
 
@@ -41,7 +45,11 @@
         body_format: json
         body: >
           {
-            "content": "{{ inventory_hostname }} {% if kernel_before.stdout != kernel_after.stdout %}hat einen neuen Kernel installiert und {% endif %}benötigt einen Neustart!"
+            "content": "{{ inventory_hostname }} 
+            {%- if kernel_before.stdout != kernel_after.stdout -%}
+            hat einen neuen Kernel installiert und 
+            {%- endif -%}
+            benötigt einen Neustart!"
           }
         headers:
           Content-Type: "application/json"
