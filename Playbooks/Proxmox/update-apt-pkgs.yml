@@ -10,6 +10,8 @@
       ansible.builtin.shell: |
         set -o pipefail
         dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      args:
+        executable: /bin/bash
       register: kernel_before
       changed_when: false
 
@@ -27,6 +29,8 @@
       ansible.builtin.shell: |
         set -o pipefail
         dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      args:
+        executable: /bin/bash
       register: kernel_after
       changed_when: false
 
