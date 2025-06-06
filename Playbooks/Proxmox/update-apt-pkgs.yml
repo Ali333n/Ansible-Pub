@@ -5,6 +5,12 @@
   gather_facts: true
 
   tasks:
+    # Get installed kernel packages before upgrade
+    - name: Get installed kernel packages before upgrade
+      ansible.builtin.shell: dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      register: kernel_before
+      changed_when: false
+
     # Upgrade packages
     - name: Upgrade APT packages
       become: true
@@ -14,6 +20,12 @@
         autoremove: true
         upgrade: dist
 
+    # Get installed kernel packages after upgrade
+    - name: Get installed kernel packages after upgrade
+      ansible.builtin.shell: dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+      register: kernel_after
+      changed_when: false
+
     # Check if reboot is required
     - name: Check if system reboot is required
       become: true
@@ -21,17 +33,17 @@
         path: /var/run/reboot-required
       register: reboot_required
 
-    # Send Discord message if reboot is required
-    - name: Send Discord message if reboot required
+    # Send Discord message if reboot required OR new kernel installed
+    - name: Send Discord message if reboot required or new kernel installed
       ansible.builtin.uri:
         url: "{{ webhook_url }}"
         method: POST
         body_format: json
         body: >
           {
-            "content": "{{ inventory_hostname }} benötigt einen Neustart!"
+            "content": "{{ inventory_hostname }} {% if kernel_before.stdout != kernel_after.stdout %}hat einen neuen Kernel installiert und {% endif %}benötigt einen Neustart!"
           }
         headers:
           Content-Type: "application/json"
         status_code: 204
-      when: reboot_required.stat.exists
+      when: reboot_required.stat.exists or kernel_before.stdout != kernel_after.stdout
