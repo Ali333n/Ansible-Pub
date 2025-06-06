@@ -46,10 +46,10 @@
         body: >
           {
             "content": "{{ inventory_hostname }}
-            {%- if kernel_before.stdout != kernel_after.stdout -%}
-            hat einen neuen Kernel installiert und
-            {%- endif -%}
-            benötigt einen Neustart!"
+          {%- if kernel_before.stdout != kernel_after.stdout -%}
+           hat einen neuen Kernel installiert und
+          {%- endif -%}
+           benötigt einen Neustart!"
           }
         headers:
           Content-Type: "application/json"
