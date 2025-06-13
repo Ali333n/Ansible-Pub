@@ -9,7 +9,7 @@
     - name: Get installed kernel packages before upgrade
       ansible.builtin.shell: |
         set -o pipefail
-        dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+        dpkg -l | grep -E '^ii.*(kernel|linux-image)-[0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}' | sort
       args:
         executable: /bin/bash
       register: kernel_before
@@ -28,7 +28,7 @@
     - name: Get installed kernel packages after upgrade
       ansible.builtin.shell: |
         set -o pipefail
-        dpkg -l | grep -E '^ii.*kernel-[0-9]' | awk '{print $2}' | sort
+        dpkg -l | grep -E '^ii.*(kernel|linux-image)-[0-9]+\.[0-9]+\.[0-9]+' | awk '{print $2}' | sort
       args:
         executable: /bin/bash
       register: kernel_after
