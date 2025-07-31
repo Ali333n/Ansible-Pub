@@ -41,17 +41,28 @@
         path: /var/run/reboot-required
       register: reboot_required
 
-    # Send Discord message if reboot required OR new kernel installed
-    - name: Send Discord message if reboot required or new kernel installed
+    # Send Discord message if new kernel installed
+    - name: Send Discord message for new kernel
       ansible.builtin.uri:
         url: "{{ webhook_url }}"
         method: POST
         body_format: json
-        body: >
-          {
-            "content": "{{ inventory_hostname }}{% if kernel_before.stdout != kernel_after.stdout %} hat einen neuen Kernel installiert und{% endif %} benötigt einen Neustart!"
-          }
+        body:
+          content: "{{ inventory_hostname }} hat einen neuen Kernel installiert und benötigt einen Neustart!"
         headers:
           Content-Type: "application/json"
         status_code: 204
-      when: reboot_required.stat.exists or kernel_before.stdout != kernel_after.stdout
+      when: kernel_before.stdout != kernel_after.stdout
+
+    # Send Discord message if reboot required (but no new kernel)
+    - name: Send Discord message for reboot required
+      ansible.builtin.uri:
+        url: "{{ webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "{{ inventory_hostname }} benötigt einen Neustart!"
+        headers:
+          Content-Type: "application/json"
+        status_code: 204
+      when: reboot_required.stat.exists and kernel_before.stdout == kernel_after.stdout
