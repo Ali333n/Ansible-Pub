@@ -27,10 +27,10 @@
 
     # Check if reboot is required
     - name: Check if system reboot is required
-      ansible.builtin.command: needs-restarting -r
+      ansible.builtin.command: needs-restarting
       register: reboot_required
+      changed_when: reboot_required.stdout != ""
       failed_when: reboot_required.rc not in [0, 1]
-      changed_when: reboot_required.rc == 1
       when: ansible_facts['os_family'] == 'RedHat'
 
     # Send Discord message when reboot is required
@@ -39,7 +39,7 @@
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body: '{"content": "Rebooting {{ inventory_hostname }}"}'
+        body: '{"content": "Rebooting {{ ansible_hostname }} {{ ansible_default_ipv4.address }}"}'
         headers:
           Content-Type: application/json
         status_code: 204
