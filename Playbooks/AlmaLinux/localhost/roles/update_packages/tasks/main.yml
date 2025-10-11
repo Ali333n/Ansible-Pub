@@ -7,7 +7,9 @@
 
 # Get current latest kernel image before update
 - name: Get latest kernel image before update
-  ansible.builtin.shell: "ls -1 /boot | grep -E '^(kernel|vmlinuz).*img$' | sort -V | tail -n1"
+  ansible.builtin.shell: "set -o pipefail && ls -1 /boot | grep -E '^(kernel|vmlinuz).*img$' | sort -V | tail -n1"
+  args:
+    executable: /bin/bash
   register: preupdate_kernel
   changed_when: false
 
@@ -21,7 +23,9 @@
 
 # Get latest kernel image after update
 - name: Get latest kernel image after update
-  ansible.builtin.shell: "ls -1 /boot | grep -E '^(kernel|vmlinuz).*img$' | sort -V | tail -n1"
+  ansible.builtin.shell: "set -o pipefail && ls -1 /boot | grep -E '^(kernel|vmlinuz).*img$' | sort -V | tail -n1"
+  args:
+    executable: /bin/bash
   register: postupdate_kernel
   changed_when: false
 
@@ -32,7 +36,9 @@
 
 # Optional: Cross-check via modules directory (for safety)
 - name: List installed kernel module directories
-  ansible.builtin.shell: "ls -1 /lib/modules | sort -V | tail -n1"
+  ansible.builtin.shell: "set -o pipefail && ls -1 /lib/modules | sort -V | tail -n1"
+  args:
+    executable: /bin/bash
   register: latest_modules
   changed_when: false
 
@@ -69,4 +75,5 @@
   ansible.builtin.shell: "sleep 5 && systemctl reboot"
   async: 1
   poll: 0
+  changed_when: false
   when: reboot_required | bool
