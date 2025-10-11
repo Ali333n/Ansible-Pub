@@ -1,0 +1,13 @@
+---
+# This Playbook runs on a RPI4 with AlmaLinux 10 as localhost
+- name: Full AlmaLinux maintenance with disk space check, updates and kernel cleanup
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    webhook_url: 'https://discordapp.com/api/webhooks/your_webhook_url_here'
+  gather_facts: true
+  become: true
+
+  roles:
+    - role: check_diskspace
+    - role: update_packages

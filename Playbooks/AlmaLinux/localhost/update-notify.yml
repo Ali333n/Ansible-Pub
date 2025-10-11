@@ -1,0 +1,56 @@
+---
+- name: Check for available updates on AlmaLinux
+  hosts: localhost
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    webhook_url: 'https://discordapp.com/api/webhooks/your_webhook_url_here'
+
+  tasks:
+    - name: Remove unneeded packages
+      ansible.builtin.command: dnf autoremove -y
+      register: autoremove_output
+      changed_when: "'Dependencies resolved.' not in autoremove_output.stdout"
+
+    - name: Get list of available updates
+      ansible.builtin.command: dnf list updates --quiet
+      register: dnf_updates
+      changed_when: false
+      failed_when: false
+
+    - name: Parse update list
+      ansible.builtin.set_fact:
+        available_updates: "{{ dnf_updates.stdout_lines | select('search', '^[a-zA-Z0-9]') | list }}"
+
+    - name: Identify Kernel updates
+      ansible.builtin.set_fact:
+        kernel_updates: "{{ available_updates | select('search', 'kernel') | list }}"
+
+    - name: Clean up extra spaces in update lines
+      ansible.builtin.set_fact:
+        available_updates: "{{ available_updates | map('regex_replace', '\\s+', ' ') | list }}"
+        kernel_updates: "{{ kernel_updates | map('regex_replace', '\\s+', ' ') | list }}"
+
+    - name: Send Discord message if kernel updates are available
+      ansible.builtin.uri:
+        url: "{{ webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "Kernel updates available on **{{ ansible_hostname }}**:\n```\n{{ kernel_updates | join('\n') }}\n```"
+        headers:
+          Content-Type: "application/json"
+        status_code: 204
+      when: kernel_updates | length > 0
+
+    - name: Send Discord message if generic updates are available
+      ansible.builtin.uri:
+        url: "{{ webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "Generic Updates available on **{{ ansible_hostname }}**:\n```\n{{ available_updates | join('\n') }}\n```"
+        headers:
+          Content-Type: "application/json"
+        status_code: 204
+      when: available_updates | length > 0 and kernel_updates | length == 0
