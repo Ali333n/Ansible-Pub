@@ -1,8 +1,11 @@
 # .ansible-lint.yaml
 skip_list:
   - package-latest  # state: latest verwenden erlauben
+  - var-naming[no-role-prefix]
 
 exclude_paths:
   - Playbooks/clean-docker.yml
   - Playbooks/d_compose-Update.yml
 
+warn_list:
+  - syntax-check[unknown-module]
