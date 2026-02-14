@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3"
 
       - name: Install latest Ansible Lint
         run: pip install --upgrade ansible-lint
@@ -26,6 +26,6 @@ jobs:
       - name: Run Ansible Lint
         uses: ansible/ansible-lint@main
         with:
-          args: '-p Playbooks -x var-naming[no-role-prefix]'
+          args: 'Playbooks'
           setup_python: "false"
           working_directory: ""

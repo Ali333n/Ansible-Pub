@@ -9,3 +9,5 @@ exclude_paths:
 
 warn_list:
   - syntax-check[unknown-module]
+
+format: pep8
