@@ -21,7 +21,7 @@
       until: running_containers.stdout_lines | length > 0
       changed_when: false
 
-    - name: Prune non-dangling image
+    - name: Prune non-dangling images
       community.docker.docker_prune:
         containers: false
         images: true

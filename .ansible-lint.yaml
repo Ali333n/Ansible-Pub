@@ -6,5 +6,3 @@ skip_list:
 exclude_paths:
   - Playbooks/clean-docker.yml
   - Playbooks/d_compose-Update.yml
-
-offline: true
