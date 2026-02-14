@@ -2,15 +2,14 @@ name: Ansible Lint
 
 on:
   push:
-    paths:
-      - 'Playbooks/**'
-  pull_request:
+    branches:
+      - dev
     paths:
       - 'Playbooks/**'
 
 jobs:
-  build:
-    name: Ansible Lint
+  lint:
+    name: Lint Playbooks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,12 +19,40 @@ jobs:
         with:
           python-version: "3"
 
-      - name: Install latest Ansible Lint
-        run: pip install --upgrade ansible-lint
+      - name: Install Ansible
+        run: | 
+          pip install --upgrade pip
+          pip install ansible>=2.20.0
+          pip install --upgrade ansible-lint yamllint
+
+      - name: Install Ansible collections
+        run: ansible-galaxy install -r requirements.yml
 
       - name: Run Ansible Lint
         uses: ansible/ansible-lint@main
         with:
-          args: 'Playbooks'
+          args: '-f pep8 -p Playbooks'
           setup_python: "false"
           working_directory: ""
+      
+      - name: Run Yamllint
+        run: yamllint Playbooks/
+
+  push-to-test:
+    name: Push to test branch
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Push to test branch
+        run: |
+          git push origin dev:test

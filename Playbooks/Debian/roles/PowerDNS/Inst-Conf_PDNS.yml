@@ -1,5 +1,5 @@
 ---
-- name: Install and configure PowerDNS Recursor
+- name: Install and configure PowerDNS Recursor test
   hosts: all
   become: true
   vars_files:
