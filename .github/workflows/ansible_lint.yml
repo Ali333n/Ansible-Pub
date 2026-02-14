@@ -23,8 +23,6 @@ jobs:
         run: |
           pip install ansible>=2.20.0
           pip install --upgrade ansible-lint yamllint
-      - name: Install Ansible collections
-        run: ansible-galaxy install -r requirements.yml
 
       - name: Run Ansible Lint
         run: ansible-lint -f pep8 Playbooks

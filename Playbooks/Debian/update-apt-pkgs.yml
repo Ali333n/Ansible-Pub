@@ -9,10 +9,10 @@
     - name: Upgrade Apt Packages
       become: true
       ansible.builtin.apt:
-        autoclean: 'true'
-        update_cache: 'true'
-        autoremove: 'true'
-        upgrade: 'dist'
+        autoclean: true
+        update_cache: true
+        autoremove: true
+        upgrade: dist
 
     - name: Check If System Reboot Is Required
       become: true
