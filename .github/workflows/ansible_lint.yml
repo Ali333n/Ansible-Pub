@@ -27,7 +27,7 @@ jobs:
         run: ansible-galaxy install -r requirements.yml
 
       - name: Run Ansible Lint
-        run: ansible-lint -f pep8 -p Playbooks
+        run: ansible-lint -f pep8 Playbooks
       - name: Run Yamllint
         run: yamllint Playbooks/
 

@@ -1,5 +1,5 @@
 ---
-- name: Clean docker
+- name: Clean non-dangling docker images
   hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
