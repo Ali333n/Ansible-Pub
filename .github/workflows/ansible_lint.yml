@@ -19,21 +19,15 @@ jobs:
         with:
           python-version: "3"
 
-      - name: Install Ansible
+      - name: Install Ansible and Linting Tools
         run: |
           pip install ansible>=2.20.0
           pip install --upgrade ansible-lint yamllint
-
       - name: Install Ansible collections
         run: ansible-galaxy install -r requirements.yml
 
       - name: Run Ansible Lint
-        uses: ansible/ansible-lint@main
-        with:
-          args: '-f pep8 -p Playbooks'
-          setup_python: "false"
-          working_directory: ""
-      
+        run: ansible-lint -f pep8 -p Playbooks
       - name: Run Yamllint
         run: yamllint Playbooks/
 
