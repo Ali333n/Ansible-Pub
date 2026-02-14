@@ -20,8 +20,7 @@ jobs:
           python-version: "3"
 
       - name: Install Ansible
-        run: | 
-          pip install --upgrade pip
+        run: |
           pip install ansible>=2.20.0
           pip install --upgrade ansible-lint yamllint
 
