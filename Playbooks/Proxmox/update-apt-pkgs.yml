@@ -1,3 +1,4 @@
+---
 - name: Upgrade and notify if reboot required
   hosts: all
   vars:
