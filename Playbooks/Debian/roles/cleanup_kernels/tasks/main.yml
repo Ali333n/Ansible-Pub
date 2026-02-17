@@ -1,47 +1,35 @@
 ---
-- name: Fail if not a Debian-based system
-  ansible.builtin.fail:
-    msg: "This role only supports Debian-family systems"
-  when: ansible_facts['distribution'] not in ['Debian', 'Ubuntu']
+- name: Extract kernel version
+  ansible.builtin.set_fact:
+    current_kernel: "{{ ansible_facts.kernel.split('-')[0:2] | join('-') }}"
 
-- name: Get current running kernel version
-  ansible.builtin.shell: "set -o pipefail && uname -r | cut -d'-' -f1,2"
-  args:
-    executable: /bin/bash
-  register: current_kernel
-  changed_when: false
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: apt
 
-- name: Get list of installed kernel packages
-  ansible.builtin.shell: "set -o pipefail && dpkg --list | grep linux-image | awk '{print $2}'"
-  args:
-    executable: /bin/bash
-  register: installed_kernels_raw
-  changed_when: false
-
-- name: Filter installed kernels (excluding current)
+- name: Filter installed kernel packages
   ansible.builtin.set_fact:
     filtered_kernels: >-
-      {{ installed_kernels_raw.stdout_lines
-         | reject('search', current_kernel.stdout)
-         | sort
-         | list }}
+      {{ ansible_facts.packages.keys()
+        | select('match', '^linux-image-[0-9].*')
+        | reject('search', current_kernel)
+        | reject('equalto', 'linux-image-amd64')
+        | sort
+        | list }}
 
 - name: Get list of kernels to remove (all but last 2)
   ansible.builtin.set_fact:
     kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 2)] if filtered_kernels | length > 2 else [] }}"
 
 - name: Remove old kernels
-  become: true
   ansible.builtin.apt:
     name: "{{ item }}"
     state: absent
     purge: true
-    force: true
   loop: "{{ kernels_to_remove }}"
   when: kernels_to_remove | length > 0
 
-- name: Autoremove unused packages after kernel cleanup
-  become: true
+- name: Autoremove unused packages
   ansible.builtin.apt:
     autoremove: true
     purge: true
