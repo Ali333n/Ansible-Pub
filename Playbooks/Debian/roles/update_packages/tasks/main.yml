@@ -1,22 +1,42 @@
 ---
-- name: Fail if not a Debian-based system
-  ansible.builtin.fail:
-    msg: "This role only supports Debian-family systems"
-  when: ansible_facts['distribution'] not in ['Debian', 'Ubuntu']
+- name: Get running kernel version
+  ansible.builtin.set_fact:
+    running_kernel: "{{ ansible_facts['kernel'] }}"
+
+- name: Update Apt Cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+  when: update_apt_cache | default(true) | bool
 
 - name: Upgrade Apt Packages
   become: true
   ansible.builtin.apt:
     autoclean: true
-    update_cache: true
+    upgrade: dist
     autoremove: true
-    upgrade: 'dist'
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Get latest installed kernel version
+  ansible.builtin.set_fact:
+    latest_installed_kernel: "{{ ansible_facts.packages.keys() | select('match', '^linux-image-[0-9].*') | reject('search', 'meta') | sort | last | regex_replace('^linux-image-', '') }}"
+  changed_when: false
 
 - name: Check If System Reboot Is Required
   become: true
   ansible.builtin.stat:
     path: /var/run/reboot-required
   register: reboot_required
+
+- name: Set fact if reboot and notification are required
+  ansible.builtin.set_fact:
+    notify_reboot_required: true
+  when:
+    - running_kernel != latest_installed_kernel
+      or reboot_required.stat.exists
 
 - name: Send Discord Message about reboot
   ansible.builtin.uri:
@@ -29,8 +49,12 @@
     status_code: 204
   when: reboot_required.stat.exists
 
-- name: Reboot system if required
+- name: Reboot if kernel was updated or reboot-required file exists
   become: true
   ansible.builtin.reboot:
-    msg: "Rebooting due to package updates"
-  when: reboot_required.stat.exists
+    msg: "Rebooting after kernel update or reboot-required"
+    pre_reboot_delay: 0
+    post_reboot_delay: 60
+  when:
+    - running_kernel != latest_installed_kernel
+      or reboot_required.stat.exists
