@@ -3,6 +3,7 @@
   hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    update_details_list: []
   gather_facts: true
 
   tasks:
