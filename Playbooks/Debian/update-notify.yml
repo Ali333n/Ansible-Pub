@@ -26,12 +26,6 @@
         - apt_sim.stdout is defined
         - "'Inst ' in apt_sim.stdout"
 
-    - name: Set empty update_details if no updates available
-      ansible.builtin.set_fact:
-        update_details_list: []
-      when:
-        - apt_sim.stdout is not defined or 'Inst ' not in apt_sim.stdout
-
     - name: Build JSON update notification payload
       ansible.builtin.set_fact:
         update_notification_json: {
