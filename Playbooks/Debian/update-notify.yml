@@ -7,19 +7,22 @@
   gather_facts: true
 
   tasks:
-    - name: Cache aktualisieren
+    # Refresh package cache to get latest available versions
+    - name: Update package cache
       ansible.builtin.apt:
         update_cache: true
       become: true
 
-    - name: Verfügbare Updates simulieren (Listen verfügbarer Pakete)
+    # Simulate dist upgrade to detect available updates without installing
+    - name: Simulate distribution upgrade
       ansible.builtin.apt:
         upgrade: dist
       check_mode: true
       register: apt_sim
       become: true
 
-    - name: Parse update details from apt output
+    # Extract package name, current and new version from apt output
+    - name: Parse package update details
       ansible.builtin.set_fact:
         update_details_list: "{{ update_details_list | default([]) + [{'name': item.0, 'old_version': item.1, 'new_version': item.2}] }}"
       loop: "{{ apt_sim.stdout | regex_findall('Inst\\s+(\\S+)\\s+\\[([^\\]]+)\\]\\s+\\(([^\\s]+)', multiline=True) }}"
@@ -27,16 +30,19 @@
         - apt_sim.stdout is defined
         - "'Inst ' in apt_sim.stdout"
 
-    - name: Build JSON update notification payload
+    # Format update information as JSON payload for Discord webhook
+    - name: Build Discord notification payload
       ansible.builtin.set_fact:
         update_notification_json: {
           "Hostname": "{{ inventory_hostname }}",
           "Update Anzahl": "{{ update_details_list | length }}",
           "updates": "{{ update_details_list }}"
         }
+      when: update_details_list | default([]) | length > 0
 
-    - name: Send Discord notification if updates are available
-      when: update_details_list | length > 0
+    # Send notification to Discord if updates are pending
+    - name: Send Discord notification
+      when: update_details_list | default([]) | length > 0
       ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
