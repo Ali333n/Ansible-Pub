@@ -18,20 +18,35 @@
       register: apt_sim
       become: true
 
-    - name: Anzahl upgradebarer Pakete ermitteln
+    - name: Parse update details from apt output
       ansible.builtin.set_fact:
-        upgrades_available: "{{ (apt_sim.stdout | default('') | regex_findall('Inst ') | length) | int }}"
+        update_details_list: "{{ update_details_list | default([]) + [{'name': item.0, 'old_version': item.1, 'new_version': item.2}] }}"
+      loop: "{{ apt_sim.stdout | regex_findall('Inst\\s+(\\S+)\\s+\\[([^\\]]+)\\]\\s+\\(([^\\s]+)', multiline=True) }}"
+      when:
+        - apt_sim.stdout is defined
+        - "'Inst ' in apt_sim.stdout"
+
+    - name: Set empty update_details if no updates available
+      ansible.builtin.set_fact:
+        update_details_list: []
+      when:
+        - apt_sim.stdout is not defined or 'Inst ' not in apt_sim.stdout
+
+    - name: Build JSON update notification payload
+      ansible.builtin.set_fact:
+        update_notification_json: {
+          "Hostname": "{{ inventory_hostname }}",
+          "Update Anzahl": "{{ update_details_list | length }}",
+          "updates": "{{ update_details_list }}"
+        }
 
     - name: Send Discord notification if updates are available
-      when: upgrades_available | int > 0
+      when: update_details_list | length > 0
       ansible.builtin.uri:
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body:
-          content: |
-            Updates are available on {{ inventory_hostname }}:
-            Total packages: {{ upgrades_available }}
+        body: "{{ update_notification_json }}"
         headers:
           Content-Type: application/json
         status_code: 204
