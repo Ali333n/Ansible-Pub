@@ -3,7 +3,6 @@
   hosts: all
   vars:
     ansible_python_interpreter: /usr/bin/python3
-  become: true
 
   tasks:
     # Get Installed Kernel Version before update
@@ -14,12 +13,14 @@
 
     # Remove unneeded packages
     - name: Remove unneeded packages
+      become: true
       ansible.builtin.dnf:
         autoremove: true
         state: absent
 
     # Upgrade all packages
     - name: Upgrade all packages with DNF
+      become: true
       ansible.builtin.dnf:
         update_cache: true
         name: '*'
@@ -42,7 +43,7 @@
     - name: Set fact if reboot is required
       ansible.builtin.set_fact:
         reboot_is_required: true
-      when: reboot_required = true or kernel_before.stdout != kernel_after.stdout
+      when: reboot_required or kernel_before.stdout != kernel_after.stdout
 
     # Send Discord message when reboot is required
     - name: Send Discord message
