@@ -6,12 +6,11 @@
   become: true
 
   tasks:
-    # Install dnf-utils if not already installed (needed for needs-restarting)
-    - name: Install dnf-utils
-      ansible.builtin.dnf:
-        name:
-          - dnf-utils
-        state: present
+    # Get Installed Kernel Version before update
+    - name: Get installed kernel version before update
+      ansible.builtin.command: uname -r
+      register: kernel_before
+      changed_when: false
 
     # Remove unneeded packages
     - name: Remove unneeded packages
@@ -26,13 +25,24 @@
         name: '*'
         state: latest
 
+    # Get Installed Kernel Version after update
+    - name: Get installed kernel version after update
+      ansible.builtin.command: uname -r
+      register: kernel_after
+      changed_when: false
+
     # Check if reboot is required
     - name: Check if system reboot is required
+      become: true
       ansible.builtin.command: needs-restarting
       register: reboot_required
-      changed_when: reboot_required.stdout != ""
-      failed_when: reboot_required.rc not in [0, 1]
-      when: ansible_facts['os_family'] == 'RedHat'
+      changed_when: false
+
+    # Set fact if reboot is required
+    - name: Set fact if reboot is required
+      ansible.builtin.set_fact:
+        reboot_is_required: true
+      when: reboot_required = true or kernel_before.stdout != kernel_after.stdout
 
     # Send Discord message when reboot is required
     - name: Send Discord message
@@ -44,11 +54,11 @@
         headers:
           Content-Type: application/json
         status_code: 204
-      # Send the Discord message only if a reboot is required
-      when: reboot_required.rc == 1
+      when: reboot_is_required | default(false) | bool
 
     # Rebooting
     - name: Rebooting Systems
+      become: true
       ansible.builtin.reboot:
         msg: "Rebooting due to package updates"
-      when: reboot_required.rc == 1
+      when: reboot_is_required | default(false) | bool
