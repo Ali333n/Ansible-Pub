@@ -33,11 +33,14 @@
     # Format update information as JSON payload for Discord webhook
     - name: Build Discord notification payload
       ansible.builtin.set_fact:
-        update_notification_json: {
-          "Hostname": "{{ inventory_hostname }}",
-          "Update Anzahl": "{{ update_details_list | length }}",
-          "updates": "{{ update_details_list }}"
-        }
+        update_notification_json:
+          content: |
+            **Verfügbare Updates auf {{ inventory_hostname }}**
+            Anzahl: {{ update_details_list | length }}
+
+            {% for pkg in update_details_list %}
+            • **{{ pkg.name }}**: {{ pkg.old_version }} → {{ pkg.new_version }}
+            {% endfor %}
       when: update_details_list | default([]) | length > 0
 
     # Send notification to Discord if updates are pending
@@ -47,7 +50,10 @@
         url: '{{ webhook_url }}'
         method: POST
         body_format: json
-        body: "{{ update_notification_json }}"
+        body:
+          content: "{{ update_notification_json.content }}"
         headers:
           Content-Type: application/json
         status_code: 204
+      delegate_to: localhost
+      become: false
