@@ -53,12 +53,12 @@
       ansible.builtin.set_fact:
         kernel_notification_json:
           embeds:
-            - title: "Neuer Kernel installiert — {{ inventory_hostname }}"
+            - title: "Neuer Kernel installiert — {{ ansible_facts['hostname'] }}"
               color: 15158332
               fields: >-
                 {{
                   [
-                    {'name': 'Host', 'value': inventory_hostname, 'inline': true},
+                    {'name': 'Host', 'value': ansible_facts['hostname'], 'inline': true},
                     {'name': 'Neustart erforderlich', 'value': 'Ja', 'inline': true}
                   ] + kernel_fields | default([])
                 }}
@@ -83,11 +83,11 @@
       ansible.builtin.set_fact:
         reboot_notification_json:
           embeds:
-            - title: "Neustart erforderlich — {{ inventory_hostname }}"
+            - title: "Neustart erforderlich — {{ ansible_facts['hostname'] }}"
               color: 16098851
               fields:
                 - name: "Host"
-                  value: "{{ inventory_hostname }}"
+                  value: "{{ ansible_facts['hostname'] }}"
                   inline: true
                 - name: "Grund"
                   value: "Paket-Upgrade"

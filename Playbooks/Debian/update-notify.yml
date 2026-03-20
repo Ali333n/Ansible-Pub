@@ -41,12 +41,12 @@
       ansible.builtin.set_fact:
         update_notification_json:
           embeds:
-            - title: "Available Updates — {{ inventory_hostname }}"
+            - title: "Available Updates — {{ ansible_facts['hostname'] }}"
               color: 5793266
               fields: >-
                 {{
                   [
-                    {'name': 'Host', 'value': inventory_hostname, 'inline': true},
+                    {'name': 'Host', 'value': ansible_facts['hostname'], 'inline': true},
                     {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
                   ] + package_fields
                 }}
