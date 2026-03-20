@@ -48,7 +48,8 @@
                   value: |
                     ```
                     {% for pkg in update_details_list %}
-                    {{ '%-35s' | format(pkg.name) }} {{ pkg.old_version }} → {{ pkg.new_version }}
+                    {{ pkg.name }}
+                      {{ pkg.old_version }} → {{ pkg.new_version }}
                     {% endfor %}
                     ```
       when: update_details_list | default([]) | length > 0
