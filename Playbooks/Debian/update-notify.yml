@@ -44,14 +44,11 @@
                 - name: "Update Count"
                   value: "{{ update_details_list | length }}"
                   inline: true
-                - name: "Packages"
-                  value: |
-                    ```
                     {% for pkg in update_details_list %}
-                    {{ pkg.name }}
-                      {{ pkg.old_version }} → {{ pkg.new_version }}
+                - name: "{{ pkg.name }}"
+                  value: "`{{ pkg.old_version }}` → `{{ pkg.new_version }}`"
+                  inline: false
                     {% endfor %}
-                    ```
       when: update_details_list | default([]) | length > 0
 
     # Send notification to Discord if updates are pending
