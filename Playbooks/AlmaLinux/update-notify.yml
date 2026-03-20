@@ -21,14 +21,9 @@
       ansible.builtin.set_fact:
         available_updates: "{{ dnf_updates.stdout_lines | select('search', '^[a-zA-Z0-9]') | list }}"
 
-    - name: Identify Kernel updates
-      ansible.builtin.set_fact:
-        kernel_updates: "{{ available_updates | select('search', 'kernel') | list }}"
-
     - name: Clean up extra spaces in update lines
       ansible.builtin.set_fact:
         available_updates: "{{ available_updates | map('regex_replace', '\\s+', ' ') | list }}"
-        kernel_updates: "{{ kernel_updates | map('regex_replace', '\\s+', ' ') | list }}"
 
     - name: Parse updates into structured list
       ansible.builtin.set_fact:
@@ -36,55 +31,15 @@
       loop: "{{ available_updates }}"
       when: available_updates | length > 0
 
-    - name: Parse kernel updates into structured list
+    - name: Build package fields list
       ansible.builtin.set_fact:
-        kernel_details_list: "{{ kernel_details_list | default([]) + [{'name': item.split(' ')[0], 'new_version': item.split(' ')[1] | default('unknown')}] }}"
-      loop: "{{ kernel_updates }}"
-      when: kernel_updates | length > 0
-
-    - name: Build kernel package fields list
-      ansible.builtin.set_fact:
-        kernel_package_fields: "{{ kernel_package_fields | default([]) + [{'name': item.name, 'value': '`' + item.new_version + '`', 'inline': false}] }}"
-      loop: "{{ kernel_details_list | default([]) }}"
-      when: kernel_updates | length > 0
-
-    - name: Build Discord payload for kernel updates
-      ansible.builtin.set_fact:
-        kernel_notification_json:
-          embeds:
-            - title: "Kernel Updates — {{ inventory_hostname }}"
-              color: 15158332
-              fields: >-
-                {{
-                  [
-                    {'name': 'Host', 'value': inventory_hostname, 'inline': true},
-                    {'name': 'Update Count', 'value': kernel_details_list | length | string, 'inline': true}
-                  ] + kernel_package_fields
-                }}
-      when: kernel_updates | length > 0
-
-    - name: Send Discord notification for kernel updates
-      ansible.builtin.uri:
-        url: "{{ webhook_url }}"
-        method: POST
-        body_format: json
-        body: "{{ kernel_notification_json }}"
-        headers:
-          Content-Type: application/json
-        status_code: 204
-      delegate_to: localhost
-      become: false
-      when: kernel_updates | length > 0
-
-    - name: Build generic package fields list
-      ansible.builtin.set_fact:
-        generic_package_fields: "{{ generic_package_fields | default([]) + [{'name': item.name, 'value': '`' + item.new_version + '`', 'inline': false}] }}"
+        package_fields: "{{ package_fields | default([]) + [{'name': item.name, 'value': '`' + item.new_version + '`', 'inline': false}] }}"
       loop: "{{ update_details_list | default([]) }}"
-      when: available_updates | length > 0
+      when: update_details_list | default([]) | length > 0
 
-    - name: Build Discord payload for generic updates
+    - name: Build Discord notification payload
       ansible.builtin.set_fact:
-        generic_notification_json:
+        update_notification_json:
           embeds:
             - title: "Available Updates — {{ inventory_hostname }}"
               color: 5793266
@@ -93,19 +48,19 @@
                   [
                     {'name': 'Host', 'value': inventory_hostname, 'inline': true},
                     {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
-                  ] + generic_package_fields
+                  ] + package_fields
                 }}
-      when: available_updates | length > 0
+      when: update_details_list | default([]) | length > 0
 
-    - name: Send Discord notification for generic updates
+    - name: Send Discord notification
       ansible.builtin.uri:
         url: "{{ webhook_url }}"
         method: POST
         body_format: json
-        body: "{{ generic_notification_json }}"
+        body: "{{ update_notification_json }}"
         headers:
           Content-Type: application/json
         status_code: 204
       delegate_to: localhost
       become: false
-      when: available_updates | length > 0
+      when: update_details_list | default([]) | length > 0
