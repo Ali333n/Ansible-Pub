@@ -30,20 +30,7 @@
         - apt_sim.stdout is defined
         - "'Inst ' in apt_sim.stdout"
 
-    # Format update information as JSON payload for Discord webhook
-    - name: Build package fields for Discord embed
-      ansible.builtin.set_fact:
-        package_fields: >-
-          {{
-            update_details_list | map('combine', {
-              'value': '`' + item.old_version + '` → `' + item.new_version + '`',
-              'inline': false
-            }) | list
-          }}
-      vars:
-        package_fields: "{{ update_details_list | map(attribute='name') | zip(update_details_list) | list }}"
-      when: update_details_list | default([]) | length > 0
-
+    # Format update information for Discord webhook
     - name: Build package fields list
       ansible.builtin.set_fact:
         package_fields: "{{ package_fields | default([]) + [{'name': item.name, 'value': '`' + item.old_version + '` → `' + item.new_version + '`', 'inline': false}] }}"
