@@ -31,27 +31,40 @@
         - "'Inst ' in apt_sim.stdout"
 
     # Format update information as JSON payload for Discord webhook
+    - name: Build package fields for Discord embed
+      ansible.builtin.set_fact:
+        package_fields: >-
+          {{
+            update_details_list | map('combine', {
+              'value': '`' + item.old_version + '` → `' + item.new_version + '`',
+              'inline': false
+            }) | list
+          }}
+      vars:
+        package_fields: "{{ update_details_list | map(attribute='name') | zip(update_details_list) | list }}"
+      when: update_details_list | default([]) | length > 0
+
+    - name: Build package fields list
+      ansible.builtin.set_fact:
+        package_fields: "{{ package_fields | default([]) + [{'name': item.name, 'value': '`' + item.old_version + '` → `' + item.new_version + '`', 'inline': false}] }}"
+      loop: "{{ update_details_list }}"
+      when: update_details_list | default([]) | length > 0
+
     - name: Build Discord notification payload
       ansible.builtin.set_fact:
         update_notification_json:
           embeds:
             - title: "Available Updates — {{ inventory_hostname }}"
               color: 3447003
-              fields:
-                - name: "Host"
-                  value: "{{ inventory_hostname }}"
-                  inline: true
-                - name: "Update Count"
-                  value: "{{ update_details_list | length }}"
-                  inline: true
-                    {% for pkg in update_details_list %}
-                - name: "{{ pkg.name }}"
-                  value: "`{{ pkg.old_version }}` → `{{ pkg.new_version }}`"
-                  inline: false
-                    {% endfor %}
+              fields: >-
+                {{
+                  [
+                    {'name': 'Host', 'value': inventory_hostname, 'inline': true},
+                    {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
+                  ] + package_fields
+                }}
       when: update_details_list | default([]) | length > 0
 
-    # Send notification to Discord if updates are pending
     - name: Send Discord notification
       when: update_details_list | default([]) | length > 0
       ansible.builtin.uri:
