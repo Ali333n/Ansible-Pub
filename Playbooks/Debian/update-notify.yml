@@ -42,7 +42,7 @@
         update_notification_json:
           embeds:
             - title: "Available Updates — {{ inventory_hostname }}"
-              color: 3447003
+              color: 5793266
               fields: >-
                 {{
                   [
