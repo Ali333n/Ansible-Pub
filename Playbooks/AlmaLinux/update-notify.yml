@@ -80,7 +80,7 @@
       ansible.builtin.set_fact:
         generic_package_fields: "{{ generic_package_fields | default([]) + [{'name': item.name, 'value': '`' + item.new_version + '`', 'inline': false}] }}"
       loop: "{{ update_details_list | default([]) }}"
-      when: available_updates | length > 0 and kernel_updates | length == 0
+      when: available_updates | length > 0
 
     - name: Build Discord payload for generic updates
       ansible.builtin.set_fact:
@@ -95,7 +95,7 @@
                     {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
                   ] + generic_package_fields
                 }}
-      when: available_updates | length > 0 and kernel_updates | length == 0
+      when: available_updates | length > 0
 
     - name: Send Discord notification for generic updates
       ansible.builtin.uri:
@@ -108,4 +108,4 @@
         status_code: 204
       delegate_to: localhost
       become: false
-      when: available_updates | length > 0 and kernel_updates | length == 0
+      when: available_updates | length > 0
