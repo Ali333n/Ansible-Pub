@@ -14,15 +14,35 @@
   check_mode: 'false'
   register: disk_usage
 
+- name: Build Discord payload for disk space warning
+  ansible.builtin.set_fact:
+    disk_notification_json:
+      embeds:
+        - title: "Disk Space Warnung — {{ ansible_facts['hostname'] }}"
+          color: 15158332
+          fields:
+            - name: "Host"
+              value: "{{ ansible_facts['hostname'] }}"
+              inline: true
+            - name: "Auslastung"
+              value: "{{ disk_usage.stdout }}"
+              inline: true
+            - name: "Hinweis"
+              value: "Updates werden übersprungen"
+              inline: false
+  when: disk_usage.stdout[:-1] | int > 80
+
 - name: Send Discord message if disk space is above 80%
   ansible.builtin.uri:
     url: '{{ webhook_url }}'
     method: POST
     body_format: json
-    body: '{"content": "Disk space on {{ inventory_hostname }} is above 80%! Current usage is {{ disk_usage.stdout }}. Skipping updates."}'
+    body: "{{ disk_notification_json }}"
     headers:
       Content-Type: application/json
     status_code: 204
+  delegate_to: localhost
+  become: false
   when: disk_usage.stdout[:-1] | int > 80
 
 - name: Stop execution if disk space is above 90%

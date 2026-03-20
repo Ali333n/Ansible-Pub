@@ -38,15 +38,32 @@
     - running_kernel != latest_installed_kernel
       or reboot_required.stat.exists
 
+- name: Build Discord payload for reboot required
+  ansible.builtin.set_fact:
+    reboot_notification_json:
+      embeds:
+        - title: "Neustart erforderlich — {{ ansible_facts['hostname'] }}"
+          color: 16098851
+          fields:
+            - name: "Host"
+              value: "{{ ansible_facts['hostname'] }}"
+              inline: true
+            - name: "Grund"
+              value: "{{ 'Kernel-Update (' + running_kernel + ' → ' + latest_installed_kernel + ')' if running_kernel != latest_installed_kernel else 'Paket-Upgrade' }}"
+              inline: true
+  when: reboot_required.stat.exists
+
 - name: Send Discord Message about reboot
   ansible.builtin.uri:
     url: '{{ webhook_url }}'
     method: POST
     body_format: json
-    body: '{"content": "Rebooting {{ inventory_hostname }} after updates"}'
+    body: "{{ reboot_notification_json }}"
     headers:
       Content-Type: application/json
     status_code: 204
+  delegate_to: localhost
+  become: false
   when: reboot_required.stat.exists
 
 - name: Reboot if kernel was updated or reboot-required file exists
