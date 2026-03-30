@@ -1,0 +1,6 @@
+---
+# Number of kernels to keep
+kernel_installonly_limit: 2
+
+# Remove old kernels automatically
+kernel_cleanup_enabled: true

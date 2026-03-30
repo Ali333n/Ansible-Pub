@@ -1,0 +1,65 @@
+---
+# Remove unneeded packages
+- name: Remove unneeded packages
+  become: true
+  ansible.builtin.dnf:
+    autoremove: true
+    state: absent
+
+# Upgrade all packages
+- name: Upgrade all packages with DNF
+  become: true
+  ansible.builtin.dnf:
+    update_cache: true
+    name: "*"
+    state: latest
+
+# Check if reboot is required
+- name: Check if reboot is required
+  ansible.builtin.command: needs-restarting -r
+  register: reboot_required
+  failed_when: false
+  changed_when: false
+
+# Set fact if reboot is required
+- name: Set fact if reboot is required
+  ansible.builtin.set_fact:
+    reboot_is_required: true
+  when: reboot_required.rc == 1
+
+# Build Discord notification payload
+- name: Build Discord payload for reboot required
+  ansible.builtin.set_fact:
+    reboot_notification_json:
+      embeds:
+        - title: "Host {{ ansible_facts['hostname'] }} wird neu gestartet"
+          color: 16098851
+          fields:
+            - name: "Host"
+              value: "{{ ansible_facts['hostname'] }}"
+              inline: true
+            - name: "Grund"
+              value: "Paket-Upgrade"
+              inline: true
+  when: reboot_is_required | default(false) | bool
+
+# Send Discord message when reboot is required
+- name: Send Discord message
+  ansible.builtin.uri:
+    url: "{{ webhook_url }}"
+    method: POST
+    body_format: json
+    body: "{{ reboot_notification_json }}"
+    headers:
+      Content-Type: application/json
+    status_code: 204
+  delegate_to: localhost
+  become: false
+  when: reboot_is_required | default(false) | bool
+
+# Rebooting
+- name: Reboot system if required
+  become: true
+  ansible.builtin.reboot:
+    msg: "Rebooting due to package updates"
+  when: reboot_is_required | default(false) | bool

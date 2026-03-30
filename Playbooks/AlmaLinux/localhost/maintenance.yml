@@ -4,10 +4,11 @@
   hosts: localhost
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    webhook_url: 'https://discordapp.com/api/webhooks/your_webhook_url_here'
+    webhook_url: "https://discordapp.com/api/webhooks/your_webhook_url_here"
   gather_facts: true
   become: true
 
   roles:
-    - role: check_diskspace
-    - role: update_packages
+    - role: check-diskspace
+    - role: update-packages
+    - role: cleanup-kernels

@@ -1,0 +1,48 @@
+---
+- name: Ensure dnf config file exists with correct permissions
+  ansible.builtin.file:
+    path: /etc/dnf/dnf.conf
+    owner: root
+    group: root
+    mode: "0644"
+    state: touch
+  become: true
+
+- name: Ensure installonly_limit is configured
+  ansible.builtin.lineinfile:
+    path: /etc/dnf/dnf.conf
+    regexp: "^installonly_limit="
+    line: "installonly_limit={{ kernel_installonly_limit }}"
+    backup: true
+  become: true
+
+- name: Ensure dnf config-manager installed
+  ansible.builtin.package:
+    name: dnf-plugins-core
+    state: present
+  become: true
+
+- name: Set installonly_limit via dnf config-manager
+  ansible.builtin.command:
+    cmd: >
+      dnf config-manager
+      --setopt=installonly_limit={{ kernel_installonly_limit }}
+      --save
+  register: dnf_config_result
+  changed_when: "'Saving' in dnf_config_result.stdout or dnf_config_result.rc == 0"
+  become: true
+
+- name: Remove old kernels
+  ansible.builtin.command:
+    cmd: dnf remove --oldinstallonly -y
+  when: kernel_cleanup_enabled
+  register: kernel_cleanup
+  changed_when: "'Removing:' in kernel_cleanup.stdout"
+  become: true
+
+- name: Debug kernel cleanup result
+  ansible.builtin.debug:
+    var: kernel_cleanup.stdout_lines
+  when:
+    - kernel_cleanup is defined
+    - kernel_cleanup.stdout is defined
