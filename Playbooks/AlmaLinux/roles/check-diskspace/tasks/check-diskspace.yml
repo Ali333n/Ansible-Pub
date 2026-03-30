@@ -1,0 +1,17 @@
+---
+- name: Calculate root partition used percentage
+  ansible.builtin.set_fact:
+    disk_usage_percent: "{{ ((item.size_total - item.size_available) / item.size_total * 100) | int }}"
+  loop: "{{ ansible_facts['mounts'] }}"
+  when: item.mount == '/'
+
+- name: Send Discord message if disk space is above 80%
+  ansible.builtin.uri:
+    url: "{{ webhook_url }}"
+    method: POST
+    body_format: json
+    body: '{"content": "Disk space on {{ inventory_hostname }} is above 80%! Current usage is {{ disk_usage_percent }}%."}'
+    headers:
+      Content-Type: application/json
+    status_code: 204
+  when: disk_usage_percent | int > 80

@@ -17,7 +17,7 @@
       become: true
       ansible.builtin.dnf:
         update_cache: true
-        name: '*'
+        name: "*"
         state: latest
 
     # Check if reboot is required
@@ -38,7 +38,7 @@
       ansible.builtin.set_fact:
         reboot_notification_json:
           embeds:
-            - title: "Neustart erforderlich — {{ ansible_facts['hostname'] }}"
+            - title: "Host wird neu gestartet — {{ ansible_facts['hostname'] }}"
               color: 16098851
               fields:
                 - name: "Host"
@@ -52,7 +52,7 @@
     # Send Discord message when reboot is required
     - name: Send Discord message
       ansible.builtin.uri:
-        url: '{{ webhook_url }}'
+        url: "{{ webhook_url }}"
         method: POST
         body_format: json
         body: "{{ reboot_notification_json }}"
