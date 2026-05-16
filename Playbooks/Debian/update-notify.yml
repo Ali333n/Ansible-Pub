@@ -37,25 +37,40 @@
       loop: "{{ update_details_list }}"
       when: update_details_list | default([]) | length > 0
 
+    # Split packages into groups of 25 (Discord limit: 25 fields/embed, max 250 Packages)
+    - name: Build chunked package embeds
+      ansible.builtin.set_fact:
+        package_embeds: >-
+          {{
+            package_embeds | default([]) + [{
+              'color': 5793266,
+              'fields': package_fields[item * 25 : (item + 1) * 25]
+            }]
+          }}
+      loop: "{{ range(0, (package_fields | length / 25) | round(0, 'ceil') | int) | list }}"
+      when: package_fields is defined and package_fields | length > 0
+
+    # First embed contains header info, followed by package chunks
     - name: Build Discord notification payload
       ansible.builtin.set_fact:
         update_notification_json:
-          embeds:
-            - title: "Available Updates — {{ ansible_facts['hostname'] }}"
-              color: 5793266
-              fields: >-
-                {{
-                  [
-                    {'name': 'Host', 'value': ansible_facts['hostname'], 'inline': true},
-                    {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
-                  ] + package_fields
-                }}
+          embeds: >-
+            {{
+              [{
+                'title': 'Available Updates — ' + ansible_facts['hostname'],
+                'color': 5793266,
+                'fields': [
+                  {'name': 'Host', 'value': ansible_facts['hostname'], 'inline': true},
+                  {'name': 'Update Count', 'value': update_details_list | length | string, 'inline': true}
+                ]
+              }] + (package_embeds | default([]))
+            }}
       when: update_details_list | default([]) | length > 0
 
     - name: Send Discord notification
       when: update_details_list | default([]) | length > 0
       ansible.builtin.uri:
-        url: '{{ webhook_url }}'
+        url: "{{ webhook_url }}"
         method: POST
         body_format: json
         body: "{{ update_notification_json }}"
