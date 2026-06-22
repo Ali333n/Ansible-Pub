@@ -47,7 +47,7 @@
       ansible.builtin.set_fact:
         kernel_fields: "{{ kernel_fields | default([]) + [{'name': item, 'value': 'Neu installiert', 'inline': false}] }}"
       loop: "{{ kernel_after.stdout_lines | difference(kernel_before.stdout_lines) }}"
-      when: kernel_before.stdout != kernel_after.stdout
+      when: (kernel_after.stdout_lines | difference(kernel_before.stdout_lines)) | length > 0
 
     - name: Build Discord payload for new kernel
       ansible.builtin.set_fact:
@@ -62,7 +62,7 @@
                     {'name': 'Neustart erforderlich', 'value': 'Ja', 'inline': true}
                   ] + kernel_fields | default([])
                 }}
-      when: kernel_before.stdout != kernel_after.stdout
+      when: (kernel_after.stdout_lines | difference(kernel_before.stdout_lines)) | length > 0
 
     # Send notification for new kernel update
     - name: Send Discord notification for new kernel
@@ -76,7 +76,7 @@
         status_code: 204
       delegate_to: localhost
       become: false
-      when: kernel_before.stdout != kernel_after.stdout
+      when: (kernel_after.stdout_lines | difference(kernel_before.stdout_lines)) | length > 0
 
     # Build notification for reboot required
     - name: Build Discord payload for reboot required
@@ -92,7 +92,7 @@
                 - name: "Grund"
                   value: "Paket-Upgrade"
                   inline: true
-      when: reboot_required.stat.exists and kernel_before.stdout == kernel_after.stdout
+      when: reboot_required.stat.exists and (kernel_after.stdout_lines | difference(kernel_before.stdout_lines)) | length == 0
 
     # Send notification for reboot required
     - name: Send Discord notification for reboot required
@@ -106,4 +106,4 @@
         status_code: 204
       delegate_to: localhost
       become: false
-      when: reboot_required.stat.exists and kernel_before.stdout == kernel_after.stdout
+      when: reboot_required.stat.exists and (kernel_after.stdout_lines | difference(kernel_before.stdout_lines)) | length == 0
