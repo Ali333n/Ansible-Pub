@@ -9,6 +9,6 @@
   become: true
 
   roles:
-    - role: check-diskspace
-    - role: update-packages
-    - role: cleanup-kernels
+    - role: check_diskspace
+    - role: update_packages
+    - role: cleanup_kernels
