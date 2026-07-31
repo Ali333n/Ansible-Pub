@@ -49,7 +49,7 @@
   ansible.builtin.set_fact:
     reboot_notification_json:
       embeds:
-        - title: "Neustart erforderlich — {{ ansible_facts['hostname'] }}"
+        - title: "{{ ansible_facts['hostname'] }} wird neu gestartet!"
           color: 16098851
           fields:
             - name: "Host"
