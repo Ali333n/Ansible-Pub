@@ -29,8 +29,8 @@
 - name: Get latest installed kernel version
   ansible.builtin.set_fact:
     latest_installed_kernel: "{{ (ansible_facts.packages.keys() | select('match',
-      '^linux-image-[0-9].*') | reject('search', 'meta') | sort | list)[-1] |
-      regex_replace('^linux-image-', '') }}"
+      '^linux-image-[0-9].*') | reject('search', 'meta') | list |
+      community.general.version_sort)[-1] | regex_replace('^linux-image-', '') }}"
   changed_when: false
   when: has_linux_image_packages
 
