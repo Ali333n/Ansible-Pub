@@ -22,7 +22,7 @@
 
 - name: Get latest installed kernel version
   ansible.builtin.set_fact:
-    latest_installed_kernel: "{{ ansible_facts.packages.keys() | select('match', '^linux-image-[0-9].*') | reject('search', 'meta') | sort | last | regex_replace('^linux-image-', '') }}"
+    latest_installed_kernel: "{{ (ansible_facts.packages.keys() | select('match', '^linux-image-[0-9].*') | reject('search', 'meta') | list | community.general.version_sort)[-1] | regex_replace('^linux-image-', '') }}"
   changed_when: false
 
 - name: Check If System Reboot Is Required
