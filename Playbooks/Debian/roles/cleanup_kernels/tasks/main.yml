@@ -7,7 +7,7 @@
   ansible.builtin.package_facts:
     manager: apt
 
-- name: Filter installed kernel packages
+- name: Filter installed kernel packages test
   ansible.builtin.set_fact:
     filtered_kernels: >-
       {{ ansible_facts.packages.keys()
