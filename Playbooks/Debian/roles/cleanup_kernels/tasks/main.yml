@@ -17,7 +17,7 @@
         | list
         | community.general.version_sort }}
 
-- name: Get list of kernels to remove (keep current + previous)
+- name: Get list of kernels to remove (keep current + previous) test
   ansible.builtin.set_fact:
     kernels_to_remove: "{{ filtered_kernels[:-2] if filtered_kernels | length > 2 else [] }}"
 
