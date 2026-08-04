@@ -20,10 +20,21 @@
   ansible.builtin.package_facts:
     manager: apt
 
+- name: Check if system has linux-image packages (not LXC/Container)
+  ansible.builtin.set_fact:
+    has_linux_image_packages:
+      "{{ (ansible_facts.packages.keys() | select('match',
+      '^linux-image-[0-9].*') | reject('search', 'meta') | length) > 0 }}"
+  changed_when: false
+
 - name: Get latest installed kernel version
   ansible.builtin.set_fact:
-    latest_installed_kernel: "{{ (ansible_facts.packages.keys() | select('match', '^linux-image-[0-9].*') | reject('search', 'meta') | list | community.general.version_sort)[-1] | regex_replace('^linux-image-', '') }}"
+    latest_installed_kernel:
+      "{{ (ansible_facts.packages.keys() | select('match',
+      '^linux-image-[0-9].*') | reject('search', 'meta') | list |
+      community.general.version_sort)[-1] | regex_replace('^linux-image-', '') }}"
   changed_when: false
+  when: has_linux_image_packages
 
 - name: Check If System Reboot Is Required
   become: true
@@ -34,27 +45,46 @@
 - name: Set fact if reboot and notification are required
   ansible.builtin.set_fact:
     notify_reboot_required: true
-  when:
-    - running_kernel != latest_installed_kernel
-      or reboot_required.stat.exists
+  when: reboot_required.stat.exists
+
+- name: Build Discord payload for reboot required
+  ansible.builtin.set_fact:
+    reboot_notification_json:
+      embeds:
+        - title: "{{ ansible_facts['hostname'] }} wird neu gestartet!"
+          color: 16098851
+          fields:
+            - name: "Host"
+              value: "{{ ansible_facts['hostname'] }}"
+              inline: true
+            - name: "Grund"
+              value:
+                "{{ 'Kernel-Update (' + running_kernel + ' → ' + latest_installed_kernel
+                + ')' if (has_linux_image_packages and running_kernel !=
+                latest_installed_kernel) else 'Paket-Upgrade' }}"
+              inline: true
+  when: reboot_required.stat.exists
 
 - name: Send Discord Message about reboot
   ansible.builtin.uri:
     url: "{{ webhook_url }}"
     method: POST
     body_format: json
-    body: '{"content": "Rebooting {{ inventory_hostname }} after updates"}'
+    body: "{{ reboot_notification_json }}"
     headers:
       Content-Type: application/json
     status_code: 204
+  delegate_to: localhost
+  become: false
   when: reboot_required.stat.exists
 
-- name: Reboot if kernel was updated or reboot-required file exists
+- name: Reboot if required
   become: true
   ansible.builtin.reboot:
-    msg: "Rebooting after kernel update or reboot-required"
+    msg: "{{ 'Rebooting after kernel update or reboot-required' if
+      has_linux_image_packages else 'Rebooting after package upgrade' }}"
     pre_reboot_delay: 0
     post_reboot_delay: 60
   when:
-    - running_kernel != latest_installed_kernel
-      or reboot_required.stat.exists
+    - reboot_required.stat.exists or (has_linux_image_packages and
+      running_kernel != latest_installed_kernel)
