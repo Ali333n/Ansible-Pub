@@ -1,26 +1,33 @@
 ---
+- name: Extract kernel version
+  ansible.builtin.set_fact:
+    current_kernel: "{{ ansible_facts.kernel.split('-')[0:2] | join('-') }}"
+
 - name: Gather package facts
   ansible.builtin.package_facts:
     manager: apt
 
-- name: Build list of installed kernel packages
+- name: Filter installed kernel packages
   ansible.builtin.set_fact:
-    kernel_packages: >-
+    filtered_kernels: >-
       {{ ansible_facts.packages.keys()
         | select('match', '^linux-image-[0-9].*')
-        | list
-        | community.general.version_sort }}
+        | reject('search', current_kernel)
+        | reject('equalto', 'linux-image-amd64')
+        | sort
+        | list }}
 
-- name: Get list of kernels to remove (keep newest two)
+- name: Get list of kernels to remove (all but last 2)
   ansible.builtin.set_fact:
-    kernels_to_remove: "{{ kernel_packages[:-2] if kernel_packages | length > 2 else [] }}"
+    kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 2)] if filtered_kernels | length > 2 else [] }}"
 
 - name: Remove old kernels
   become: true
   ansible.builtin.apt:
-    name: "{{ kernels_to_remove }}"
+    name: "{{ item }}"
     state: absent
     purge: true
+  loop: "{{ kernels_to_remove }}"
   when: kernels_to_remove | length > 0
 
 - name: Autoremove unused packages
