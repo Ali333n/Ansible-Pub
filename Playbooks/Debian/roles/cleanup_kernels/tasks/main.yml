@@ -12,13 +12,14 @@
     filtered_kernels: >-
       {{ ansible_facts.packages.keys()
         | select('match', '^linux-image-[0-9].*')
+        | reject('search', current_kernel)
         | reject('equalto', 'linux-image-amd64')
         | list
         | community.general.version_sort }}
 
-- name: Get list of kernels to remove (all but last 2)
+- name: Get list of kernels to remove (all but last 1, current kernel already excluded)
   ansible.builtin.set_fact:
-    kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 2)] if filtered_kernels | length > 2 else [] }}"
+    kernels_to_remove: "{{ filtered_kernels[0 : (filtered_kernels | length - 1)] if filtered_kernels | length > 1 else [] }}"
 
 - name: Remove old kernels
   become: true
