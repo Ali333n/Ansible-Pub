@@ -12,8 +12,8 @@
 - name: Upgrade Apt Packages
   become: true
   ansible.builtin.apt:
-    autoclean: true
     upgrade: dist
+    autoclean: true
     autoremove: true
 
 - name: Gather package facts
@@ -76,7 +76,10 @@
     status_code: 204
   delegate_to: localhost
   become: false
-  when: reboot_required.stat.exists
+  when:
+    - reboot_required.stat.exists
+    - webhook_url | default('') | length > 0
+  failed_when: false
 
 - name: Reboot if required
   become: true
