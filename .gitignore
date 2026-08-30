@@ -5,5 +5,5 @@ settings.json
 # Mac
 .DS_Store
 
-# ansible lint
+# local requirements / collections / modules
 .ansible
