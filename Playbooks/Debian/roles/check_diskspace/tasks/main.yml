@@ -10,8 +10,8 @@
       set -euo pipefail
       df -Ph / | awk 'NR==2 {print $5}'
     executable: /bin/bash
-  changed_when: 'false'
-  check_mode: 'false'
+  changed_when: "false"
+  check_mode: "false"
   register: disk_usage
 
 - name: Build Discord payload for disk space warning
@@ -34,7 +34,7 @@
 
 - name: Send Discord message if disk space is above 80%
   ansible.builtin.uri:
-    url: '{{ webhook_url }}'
+    url: "{{ webhook_url }}"
     method: POST
     body_format: json
     body: "{{ disk_notification_json }}"
@@ -43,7 +43,10 @@
     status_code: 204
   delegate_to: localhost
   become: false
-  when: disk_usage.stdout[:-1] | int > 80
+  when:
+    - disk_usage.stdout[:-1] | int > 80
+    - webhook_url | default('') | length > 0
+  failed_when: false
 
 - name: Stop execution if disk space is above 90%
   ansible.builtin.meta: end_host
