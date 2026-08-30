@@ -35,3 +35,17 @@
   ansible.builtin.apt:
     autoremove: true
     purge: true
+
+- name: Gather package facts after kernel cleanup
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Show kernels after cleanup
+  ansible.builtin.debug:
+    msg:
+      running: "{{ ansible_facts.kernel }}"
+      installed: >-
+        {{ ansible_facts.packages.keys()
+          | select('match', '^linux-image-[0-9].*')
+          | list
+          | community.general.version_sort }}
