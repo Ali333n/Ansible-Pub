@@ -4,3 +4,6 @@ settings.json
 
 # Mac
 .DS_Store
+
+# ansible lint
+.ansible
