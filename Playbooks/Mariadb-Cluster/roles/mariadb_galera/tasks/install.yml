@@ -1,0 +1,26 @@
+---
+- name: Install MariaDB, Galera and healthcheck packages
+  ansible.builtin.apt:
+    name: "{{ mariadb_packages }}"
+    state: present
+
+- name: Enable MariaDB at boot
+  ansible.builtin.systemd_service:
+    name: "{{ mariadb_service_name }}"
+    enabled: true
+
+- name: Gather installed package facts
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Read the installed MariaDB version
+  ansible.builtin.set_fact:
+    mariadb_server_version: "{{ ansible_facts.packages['mariadb-server'][0].version }}"
+
+- name: Verify the requested MariaDB release is installed
+  ansible.builtin.assert:
+    that:
+      - mariadb_version in mariadb_server_version
+    fail_msg: >-
+      MariaDB {{ mariadb_version }} was requested, but the installed package is
+      {{ mariadb_server_version }}.

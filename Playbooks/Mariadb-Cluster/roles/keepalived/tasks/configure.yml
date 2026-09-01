@@ -1,0 +1,29 @@
+---
+- name: Install the HAProxy tracking script
+  ansible.builtin.template:
+    src: check-haproxy.sh.j2
+    dest: "{{ keepalived_check_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart Keepalived
+
+- name: Install the Keepalived configuration
+  ansible.builtin.template:
+    src: keepalived.conf.j2
+    dest: "{{ keepalived_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Keepalived
+
+- name: Validate the Keepalived configuration
+  ansible.builtin.command:
+    cmd: "keepalived --config-test --use-file {{ keepalived_config_file }}"
+  changed_when: false
+
+- name: Ensure Keepalived is running
+  ansible.builtin.systemd_service:
+    name: "{{ keepalived_service_name }}"
+    enabled: true
+    state: started

@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+
+status=$(/usr/bin/mariadb \
+  --protocol=socket \
+  --user=root \
+  --connect-timeout=2 \
+  --batch \
+  --skip-column-names \
+  --execute="SELECT VARIABLE_NAME, VARIABLE_VALUE FROM information_schema.GLOBAL_STATUS WHERE VARIABLE_NAME IN ('wsrep_cluster_status', 'wsrep_connected', 'wsrep_ready', 'wsrep_local_state_comment')" \
+  2>/dev/null || true)
+
+value() {
+  printf '%s\n' "$status" | awk -v key="$1" '$1 == key { print $2; exit }'
+}
+
+if [ "$(value wsrep_cluster_status)" = "Primary" ] && \
+   [ "$(value wsrep_connected)" = "ON" ] && \
+   [ "$(value wsrep_ready)" = "ON" ] && \
+   [ "$(value wsrep_local_state_comment)" = "Synced" ]; then
+  printf 'HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK'
+else
+  printf 'HTTP/1.1 503 Service Unavailable\r\nContent-Length: 9\r\nConnection: close\r\n\r\nNOT READY'
+fi

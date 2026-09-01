@@ -1,0 +1,17 @@
+[mysqld]
+bind-address = {{ mariadb_bind_address }}
+port = {{ mariadb_port }}
+
+binlog_format = {{ galera_binlog_format }}
+default_storage_engine = {{ galera_storage_engine }}
+innodb_autoinc_lock_mode = {{ galera_innodb_autoinc_lock_mode }}
+
+wsrep_on = {{ 'ON' if galera_wsrep_on | bool else 'OFF' }}
+wsrep_provider = {{ galera_wsrep_provider }}
+wsrep_cluster_name = "{{ galera_cluster_name }}"
+wsrep_cluster_address = "gcomm://{% for cluster_host in groups[galera_cluster_group] %}{{ hostvars[cluster_host].ansible_host | default(cluster_host) }}{% if not loop.last %},{% endif %}{% endfor %}"
+wsrep_node_name = "{{ galera_node_name }}"
+wsrep_node_address = "{{ galera_node_address }}"
+wsrep_sst_method = {{ galera_sst_method }}
+wsrep_sst_auth = "{{ galera_sst_user }}:{{ galera_sst_password }}"
+wsrep_provider_options = "gcache.size={{ galera_gcache_size }};gcache.page_size={{ galera_gcache_page_size }}"

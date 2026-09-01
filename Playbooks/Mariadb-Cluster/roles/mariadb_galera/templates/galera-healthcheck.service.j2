@@ -1,0 +1,13 @@
+[Unit]
+Description=Galera health endpoint
+After={{ mariadb_service_name }}.service
+Requires={{ mariadb_service_name }}.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/socat TCP-LISTEN:{{ galera_healthcheck_port }},bind={{ galera_healthcheck_bind_address }},reuseaddr,fork EXEC:{{ galera_healthcheck_script }}
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

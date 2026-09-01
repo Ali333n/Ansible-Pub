@@ -1,0 +1,18 @@
+---
+- name: Validate the Keepalived target operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version | int == 13
+    fail_msg: "This starter role currently supports Debian 13 only."
+
+- name: Validate the Keepalived inventory and credentials
+  ansible.builtin.assert:
+    that:
+      - groups['loadbalancer'] | length == 2
+      - keepalived_auth_password | length > 0
+      - keepalived_auth_password | length <= 8
+      - keepalived_auth_password not in ['', 'replace', 'CHANGE_ME']
+    fail_msg: >-
+      Keepalived needs exactly two load balancers and an authentication password
+      of one to eight characters.

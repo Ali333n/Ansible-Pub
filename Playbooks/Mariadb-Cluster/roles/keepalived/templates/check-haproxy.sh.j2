@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+systemctl is-active --quiet haproxy
+
+healthy_backends=$(
+  printf 'show stat\n' | /usr/bin/socat - UNIX-CONNECT:{{ keepalived_haproxy_stats_socket }} 2>/dev/null \
+    | awk -F, '$1 == "mariadb_galera" && $2 ~ /^db/ && $18 == "UP" { healthy = 1 } END { print healthy + 0 }'
+)
+
+[ "$healthy_backends" = "1" ]

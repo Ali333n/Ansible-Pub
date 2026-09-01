@@ -1,0 +1,117 @@
+---
+- name: Prepare MariaDB Galera nodes
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: true
+  serial: 1
+  any_errors_fatal: true
+  roles:
+    - role: mariadb_galera
+      tags:
+        - mariadb
+        - galera
+
+- name: Stop uninitialized MariaDB services
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Check Galera initialization marker
+      ansible.builtin.stat:
+        path: "{{ galera_initialized_marker }}"
+      register: galera_initialization_marker
+
+    - name: Stop MariaDB before the explicit initial bootstrap
+      ansible.builtin.systemd_service:
+        name: mariadb
+        state: stopped
+      when:
+        - galera_bootstrap_enabled | bool
+        - not galera_initialization_marker.stat.exists
+
+- name: Bootstrap the first Galera node
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Bootstrap Galera
+      ansible.builtin.include_role:
+        name: mariadb_galera
+        tasks_from: bootstrap
+
+- name: Create SST and optional application credentials
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Manage MariaDB users and databases
+      ansible.builtin.include_role:
+        name: mariadb_galera
+        tasks_from: users
+      when: inventory_hostname == galera_bootstrap_node
+
+- name: Start the remaining Galera nodes
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Join the node to Galera
+      ansible.builtin.include_role:
+        name: mariadb_galera
+        tasks_from: start
+
+- name: Verify the complete Galera cluster
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Verify Galera status
+      ansible.builtin.include_role:
+        name: mariadb_galera
+        tasks_from: verify
+
+- name: Enable the Galera health endpoint
+  hosts: mariadb_cluster
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  tasks:
+    - name: Manage the local Galera health endpoint
+      ansible.builtin.include_role:
+        name: mariadb_galera
+        tasks_from: healthcheck
+
+- name: Configure HAProxy on both load balancers
+  hosts: loadbalancer
+  become: true
+  gather_facts: true
+  serial: 1
+  any_errors_fatal: true
+  roles:
+    - role: haproxy
+      tags:
+        - haproxy
+        - loadbalancer
+
+- name: Configure Keepalived on both load balancers
+  hosts: loadbalancer
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  roles:
+    - role: keepalived
+      tags:
+        - keepalived
+        - loadbalancer

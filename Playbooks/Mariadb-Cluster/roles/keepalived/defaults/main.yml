@@ -1,0 +1,18 @@
+---
+keepalived_package_name: keepalived
+keepalived_service_name: keepalived
+keepalived_config_file: /etc/keepalived/keepalived.conf
+keepalived_interface: eth0
+keepalived_vip: 10.10.20.10
+keepalived_vip_prefix: 24
+keepalived_virtual_router_id: 51
+keepalived_state: >-
+  {{ 'MASTER' if inventory_hostname == groups['loadbalancer'][0] else 'BACKUP' }}
+keepalived_priority: >-
+  {{ 150 if inventory_hostname == groups['loadbalancer'][0] else 100 }}
+keepalived_auth_password: "{{ vault_keepalived_auth_password | default('') }}"
+keepalived_check_script: /usr/local/sbin/check-haproxy.sh
+keepalived_check_interval: 2
+keepalived_check_timeout: 3
+keepalived_check_weight: -60
+keepalived_haproxy_stats_socket: /run/haproxy/admin.sock

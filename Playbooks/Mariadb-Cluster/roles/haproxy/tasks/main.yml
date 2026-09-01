@@ -1,0 +1,12 @@
+---
+- name: Validate HAProxy prerequisites
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Install HAProxy
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure HAProxy
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Configure the optional HAProxy firewall
+  ansible.builtin.include_tasks: firewall.yml

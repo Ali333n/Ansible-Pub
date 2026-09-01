@@ -1,0 +1,28 @@
+---
+- name: Configure the local Galera health endpoint
+  when: galera_healthcheck_enabled | bool
+  block:
+    - name: Install the Galera healthcheck script
+      ansible.builtin.template:
+        src: galera-healthcheck.sh.j2
+        dest: "{{ galera_healthcheck_script }}"
+        owner: root
+        group: root
+        mode: "0755"
+      notify: Restart Galera health endpoint
+
+    - name: Install the Galera healthcheck service
+      ansible.builtin.template:
+        src: galera-healthcheck.service.j2
+        dest: "/etc/systemd/system/{{ galera_healthcheck_service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart Galera health endpoint
+
+    - name: Enable and start the Galera health endpoint
+      ansible.builtin.systemd_service:
+        name: "{{ galera_healthcheck_service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true

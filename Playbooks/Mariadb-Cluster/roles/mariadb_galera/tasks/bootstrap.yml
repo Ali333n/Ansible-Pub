@@ -1,0 +1,62 @@
+---
+- name: Bootstrap the selected Galera node
+  when:
+    - inventory_hostname == galera_bootstrap_node
+    - galera_bootstrap_enabled | bool
+  block:
+    - name: Check the initialization marker
+      ansible.builtin.stat:
+        path: "{{ galera_initialized_marker }}"
+      register: galera_bootstrap_marker
+
+    - name: Run the one-time Galera bootstrap command
+      ansible.builtin.command:
+        cmd: galera_new_cluster
+      when: not galera_bootstrap_marker.stat.exists
+      changed_when: true
+
+    - name: Wait for MariaDB after bootstrap
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ mariadb_port }}"
+        timeout: 60
+
+    - name: Read the bootstrap node state
+      ansible.mysql.mysql_query:
+        login_user: root
+        login_unix_socket: "{{ mariadb_socket }}"
+        query: >-
+          SELECT VARIABLE_NAME AS status_name, VARIABLE_VALUE AS status_value
+          FROM information_schema.GLOBAL_STATUS
+          WHERE VARIABLE_NAME IN
+          ('wsrep_cluster_status', 'wsrep_connected', 'wsrep_ready',
+          'wsrep_local_state_comment')
+      register: galera_bootstrap_status
+      retries: 30
+      delay: 2
+      until: galera_bootstrap_status is succeeded
+
+    - name: Convert bootstrap status into a dictionary
+      ansible.builtin.set_fact:
+        galera_bootstrap_status_values: >-
+          {{ dict(galera_bootstrap_status.query_result[0]
+          | map(attribute='status_name')
+          | zip(galera_bootstrap_status.query_result[0]
+          | map(attribute='status_value'))) }}
+
+    - name: Verify the bootstrapped node is ready
+      ansible.builtin.assert:
+        that:
+          - galera_bootstrap_status_values.get('wsrep_cluster_status', '') == 'Primary'
+          - galera_bootstrap_status_values.get('wsrep_connected', '') == 'ON'
+          - galera_bootstrap_status_values.get('wsrep_ready', '') == 'ON'
+          - galera_bootstrap_status_values.get('wsrep_local_state_comment', '') == 'Synced'
+        fail_msg: "The bootstrap node did not reach Primary/Synced/Ready."
+
+    - name: Record the successful bootstrap
+      ansible.builtin.copy:
+        content: initialized
+        dest: "{{ galera_initialized_marker }}"
+        owner: mysql
+        group: mysql
+        mode: "0600"
