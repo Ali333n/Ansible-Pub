@@ -1,0 +1,15 @@
+---
+- name: Validate the HAProxy target operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version | int == 13
+    fail_msg: "This starter role currently supports Debian 13 only."
+
+- name: Validate the load balancer inventory
+  ansible.builtin.assert:
+    that:
+      - groups['loadbalancer'] | length == 2
+      - groups[galera_cluster_group] | length == 3
+      - haproxy_backend_preferred_node in groups[galera_cluster_group]
+    fail_msg: "The inventory must contain two load balancers and three Galera nodes."

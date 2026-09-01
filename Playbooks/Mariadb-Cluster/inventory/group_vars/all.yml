@@ -1,0 +1,27 @@
+---
+mariadb_version: "11.8"
+mariadb_port: 3306
+mariadb_bind_address: "0.0.0.0"
+
+galera_cluster_group: mariadb_cluster
+galera_cluster_name: mariadb_cluster
+galera_bootstrap_node: db01
+galera_bootstrap_enabled: false
+galera_sst_method: mariabackup
+galera_gcache_size: "2G"
+galera_gcache_page_size: "128M"
+galera_sst_password: "{{ vault_galera_sst_password | default('') }}"
+
+mariadb_databases: []
+mariadb_users: []
+mariadb_allowed_client_networks: []
+
+galera_healthcheck_port: 9200
+
+haproxy_backend_preferred_node: "{{ galera_bootstrap_node }}"
+haproxy_allowed_client_networks: []
+
+keepalived_vip: 10.10.20.10
+keepalived_vip_prefix: 24
+keepalived_interface: eth0
+keepalived_auth_password: "{{ vault_keepalived_auth_password | default('') }}"

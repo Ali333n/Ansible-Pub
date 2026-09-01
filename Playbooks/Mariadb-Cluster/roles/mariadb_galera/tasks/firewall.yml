@@ -1,0 +1,102 @@
+---
+- name: Configure the MariaDB firewall with UFW
+  when: mariadb_firewall_enabled | bool
+  block:
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Allow SSH before enabling UFW
+      community.general.ufw:
+        rule: allow
+        port: "{{ mariadb_ssh_port }}"
+        proto: tcp
+
+    - name: Allow MariaDB from load balancers
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[loadbalancer_host].ansible_host | default(loadbalancer_host) }}"
+        port: "{{ mariadb_port }}"
+        proto: tcp
+      loop: "{{ groups.get('loadbalancer', []) }}"
+      loop_control:
+        loop_var: loadbalancer_host
+
+    - name: Allow MariaDB from configured client networks
+      community.general.ufw:
+        rule: allow
+        src: "{{ client_network }}"
+        port: "{{ mariadb_port }}"
+        proto: tcp
+      loop: "{{ mariadb_allowed_client_networks }}"
+      loop_control:
+        loop_var: client_network
+
+    - name: Allow Galera replication over TCP
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[cluster_host].ansible_host | default(cluster_host) }}"
+        port: "4567"
+        proto: tcp
+      loop: "{{ groups[galera_cluster_group] }}"
+      loop_control:
+        loop_var: cluster_host
+      when: cluster_host != inventory_hostname
+
+    - name: Allow Galera replication over UDP
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[cluster_host].ansible_host | default(cluster_host) }}"
+        port: "4567"
+        proto: udp
+      loop: "{{ groups[galera_cluster_group] }}"
+      loop_control:
+        loop_var: cluster_host
+      when: cluster_host != inventory_hostname
+
+    - name: Allow Galera IST
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[cluster_host].ansible_host | default(cluster_host) }}"
+        port: "4568"
+        proto: tcp
+      loop: "{{ groups[galera_cluster_group] }}"
+      loop_control:
+        loop_var: cluster_host
+      when: cluster_host != inventory_hostname
+
+    - name: Allow Galera SST
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[cluster_host].ansible_host | default(cluster_host) }}"
+        port: "4444"
+        proto: tcp
+      loop: "{{ groups[galera_cluster_group] }}"
+      loop_control:
+        loop_var: cluster_host
+      when: cluster_host != inventory_hostname
+
+    - name: Allow the Galera health endpoint from load balancers
+      community.general.ufw:
+        rule: allow
+        src: "{{ hostvars[loadbalancer_host].ansible_host | default(loadbalancer_host) }}"
+        port: "{{ galera_healthcheck_port }}"
+        proto: tcp
+      loop: "{{ groups.get('loadbalancer', []) }}"
+      loop_control:
+        loop_var: loadbalancer_host
+
+    - name: Set the default incoming UFW policy
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set the default outgoing UFW policy
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled

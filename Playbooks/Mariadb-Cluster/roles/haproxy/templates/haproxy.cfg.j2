@@ -1,0 +1,27 @@
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    stats socket {{ haproxy_stats_socket }} mode 660 level operator
+    daemon
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+    timeout check 5s
+
+frontend mariadb_frontend
+    bind {{ haproxy_bind_address }}:{{ haproxy_frontend_port }}
+    default_backend mariadb_galera
+
+backend mariadb_galera
+    mode tcp
+    option httpchk GET /
+    http-check expect status 200
+    default-server inter {{ haproxy_check_interval }} fall {{ haproxy_check_fall }} rise {{ haproxy_check_rise }} on-marked-down shutdown-sessions
+{% for cluster_host in groups[galera_cluster_group] %}
+    server {{ cluster_host }} {{ hostvars[cluster_host].ansible_host | default(cluster_host) }}:{{ mariadb_port | default(3306) }} check port {{ haproxy_healthcheck_port }}{% if cluster_host != haproxy_backend_preferred_node %} backup{% endif %}
+{% endfor %}

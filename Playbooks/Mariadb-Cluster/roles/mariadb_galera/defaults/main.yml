@@ -1,0 +1,40 @@
+---
+mariadb_repository_enabled: false
+mariadb_repository_base_url: "https://deb.mariadb.org/{{ mariadb_version }}/debian"
+mariadb_repository_suite: "{{ ansible_facts.distribution_release }}"
+mariadb_repository_components: main
+mariadb_repository_key_url: "https://mariadb.org/mariadb_release_signing_key.asc"
+mariadb_repository_keyring: /usr/share/keyrings/mariadb-release-key.asc
+
+mariadb_packages:
+  - mariadb-server
+  - mariadb-client
+  - mariadb-backup
+  - galera-4
+  - python3-pymysql
+  - socat
+mariadb_service_name: mariadb
+mariadb_socket: /run/mysqld/mysqld.sock
+
+galera_wsrep_provider: /usr/lib/galera/libgalera_smm.so
+galera_wsrep_on: true
+galera_binlog_format: ROW
+galera_storage_engine: InnoDB
+galera_innodb_autoinc_lock_mode: 2
+galera_node_name: "{{ inventory_hostname }}"
+galera_node_address: "{{ ansible_host | default(ansible_facts.default_ipv4.address) }}"
+galera_sst_user: sstuser
+galera_sst_password: "{{ vault_galera_sst_password | default('') }}"
+galera_gcache_size: 2G
+galera_gcache_page_size: 128M
+galera_initialized_marker: /var/lib/mysql/.ansible_galera_initialized
+
+galera_healthcheck_enabled: true
+galera_healthcheck_service_name: galera-healthcheck
+galera_healthcheck_script: /usr/local/sbin/galera-healthcheck.sh
+galera_healthcheck_bind_address: "{{ galera_node_address }}"
+galera_healthcheck_port: 9200
+
+mariadb_firewall_enabled: false
+mariadb_ssh_port: 22
+mariadb_allowed_client_networks: []

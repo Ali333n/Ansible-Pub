@@ -1,0 +1,40 @@
+---
+- name: Start and join a non-bootstrap Galera node
+  when: inventory_hostname != galera_bootstrap_node
+  block:
+    - name: Start MariaDB
+      ansible.builtin.systemd_service:
+        name: "{{ mariadb_service_name }}"
+        state: started
+        enabled: true
+
+    - name: Wait for MariaDB to accept connections
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: "{{ mariadb_port }}"
+        timeout: 60
+
+    - name: Wait for the node to become Synced
+      ansible.mysql.mysql_query:
+        login_user: root
+        login_unix_socket: "{{ mariadb_socket }}"
+        query: >-
+          SELECT VARIABLE_VALUE AS status_value
+          FROM information_schema.GLOBAL_STATUS
+          WHERE VARIABLE_NAME = 'wsrep_local_state_comment'
+      register: galera_node_state
+      retries: 60
+      delay: 2
+      until:
+        - galera_node_state is succeeded
+        - galera_node_state.query_result | default([]) | length > 0
+        - galera_node_state.query_result[0] | default([]) | length > 0
+        - galera_node_state.query_result[0][0].status_value | default('') == 'Synced'
+
+    - name: Record the successful node join
+      ansible.builtin.copy:
+        content: initialized
+        dest: "{{ galera_initialized_marker }}"
+        owner: mysql
+        group: mysql
+        mode: "0600"

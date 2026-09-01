@@ -1,0 +1,12 @@
+---
+- name: Install Keepalived and its healthcheck helper
+  ansible.builtin.apt:
+    name:
+      - "{{ keepalived_package_name }}"
+      - socat
+    state: present
+
+- name: Enable Keepalived at boot
+  ansible.builtin.systemd_service:
+    name: "{{ keepalived_service_name }}"
+    enabled: true

@@ -1,0 +1,41 @@
+---
+- name: Validate the target operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version | int == 13
+    fail_msg: "This starter role currently supports Debian 13 only."
+
+- name: Validate the Galera inventory
+  ansible.builtin.assert:
+    that:
+      - groups[galera_cluster_group] | length == 3
+      - inventory_hostname in groups[galera_cluster_group]
+      - galera_bootstrap_node in groups[galera_cluster_group]
+    fail_msg: "The Galera inventory must contain exactly three database nodes."
+
+- name: Check the initialization marker
+  ansible.builtin.stat:
+    path: "{{ galera_initialized_marker }}"
+  register: galera_initialized_marker_stat
+
+- name: Record whether this is the explicit initial setup
+  ansible.builtin.set_fact:
+    galera_initial_setup: "{{ galera_bootstrap_enabled | bool and not galera_initialized_marker_stat.stat.exists }}"
+
+- name: Require an explicit initial bootstrap
+  ansible.builtin.assert:
+    that:
+      - galera_bootstrap_enabled | bool
+    fail_msg: >-
+      This node is not initialized. Run the first deployment with
+      -e galera_bootstrap_enabled=true.
+  when: not galera_initialized_marker_stat.stat.exists
+
+- name: Require a non-empty SST password
+  ansible.builtin.assert:
+    that:
+      - galera_sst_password | length >= 12
+      - galera_sst_password not in ['', 'CHANGE_ME']
+    fail_msg: >-
+      Set vault_galera_sst_password in an Ansible Vault file before deployment.

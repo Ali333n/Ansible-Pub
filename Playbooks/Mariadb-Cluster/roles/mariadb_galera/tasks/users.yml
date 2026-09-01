@@ -1,0 +1,57 @@
+---
+- name: Require an SST password before creating the SST user
+  ansible.builtin.assert:
+    that:
+      - galera_sst_password | length >= 12
+    fail_msg: "Set vault_galera_sst_password before creating the SST user."
+
+- name: Create the Galera SST user
+  ansible.mysql.mysql_user:
+    name: "{{ galera_sst_user }}"
+    host: localhost
+    password: "{{ galera_sst_password }}"
+    priv: "*.*:RELOAD,LOCK TABLES,PROCESS,REPLICATION CLIENT"
+    state: present
+    update_password: always
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
+    check_implicit_admin: true
+
+- name: Create configured application databases
+  ansible.mysql.mysql_db:
+    name: "{{ database.name }}"
+    encoding: "{{ database.encoding | default('utf8mb4') }}"
+    collation: "{{ database.collation | default('utf8mb4_unicode_ci') }}"
+    state: present
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
+    check_implicit_admin: true
+  loop: "{{ mariadb_databases }}"
+  loop_control:
+    loop_var: database
+
+- name: Validate configured application users
+  ansible.builtin.assert:
+    that:
+      - user.get('name', '') != 'root'
+      - user.get('database', '') | length > 0
+      - user.get('password', '') | length > 0
+    fail_msg: "Every application user needs a database and a Vault-managed password."
+  loop: "{{ mariadb_users }}"
+  loop_control:
+    loop_var: user
+
+- name: Create configured application users
+  ansible.mysql.mysql_user:
+    name: "{{ user.name }}"
+    host: "{{ user.host | default('%') }}"
+    password: "{{ user.password }}"
+    priv: "{{ user.database }}.*:ALL"
+    state: present
+    update_password: always
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
+    check_implicit_admin: true
+  loop: "{{ mariadb_users }}"
+  loop_control:
+    loop_var: user

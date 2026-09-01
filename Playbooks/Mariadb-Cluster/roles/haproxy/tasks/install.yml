@@ -1,0 +1,12 @@
+---
+- name: Install HAProxy and its runtime socket helper
+  ansible.builtin.apt:
+    name:
+      - "{{ haproxy_package_name }}"
+      - socat
+    state: present
+
+- name: Enable HAProxy at boot
+  ansible.builtin.systemd_service:
+    name: "{{ haproxy_service_name }}"
+    enabled: true

@@ -1,4 +1,5 @@
 collections:
   - name: community.general
+  - name: ansible.mysql
   - name: community.docker
   - name: community.library_inventory_filtering_v1

@@ -1,0 +1,30 @@
+---
+- name: Read Galera status
+  ansible.mysql.mysql_query:
+    login_user: root
+    login_unix_socket: "{{ mariadb_socket }}"
+    query: >-
+      SELECT VARIABLE_NAME AS status_name, VARIABLE_VALUE AS status_value
+      FROM information_schema.GLOBAL_STATUS
+      WHERE VARIABLE_NAME IN
+      ('wsrep_cluster_size', 'wsrep_cluster_status', 'wsrep_connected',
+      'wsrep_ready', 'wsrep_local_state_comment')
+  register: galera_status
+
+- name: Convert Galera status into a dictionary
+  ansible.builtin.set_fact:
+    galera_status_values: >-
+      {{ dict(galera_status.query_result[0]
+      | map(attribute='status_name')
+      | zip(galera_status.query_result[0]
+      | map(attribute='status_value'))) }}
+
+- name: Verify the expected Galera state
+  ansible.builtin.assert:
+    that:
+      - galera_status_values.get('wsrep_cluster_size', '0') | int == groups[galera_cluster_group] | length
+      - galera_status_values.get('wsrep_cluster_status', '') == 'Primary'
+      - galera_status_values.get('wsrep_connected', '') == 'ON'
+      - galera_status_values.get('wsrep_ready', '') == 'ON'
+      - galera_status_values.get('wsrep_local_state_comment', '') == 'Synced'
+    fail_msg: "The node is not part of a complete Primary/Synced Galera cluster."

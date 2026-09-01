@@ -1,0 +1,15 @@
+---
+haproxy_package_name: haproxy
+haproxy_service_name: haproxy
+haproxy_config_file: /etc/haproxy/haproxy.cfg
+haproxy_bind_address: "0.0.0.0"
+haproxy_frontend_port: 3306
+haproxy_backend_preferred_node: "{{ galera_bootstrap_node }}"
+haproxy_healthcheck_port: "{{ galera_healthcheck_port | default(9200) }}"
+haproxy_stats_socket: /run/haproxy/admin.sock
+haproxy_check_interval: 2s
+haproxy_check_fall: 3
+haproxy_check_rise: 2
+haproxy_allowed_client_networks: []
+haproxy_firewall_enabled: false
+haproxy_ssh_port: 22

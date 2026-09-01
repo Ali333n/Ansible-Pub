@@ -1,0 +1,25 @@
+---
+- name: Install the MariaDB repository key when requested
+  ansible.builtin.get_url:
+    url: "{{ mariadb_repository_key_url }}"
+    dest: "{{ mariadb_repository_keyring }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: mariadb_repository_enabled | bool
+
+- name: Configure the MariaDB repository when requested
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [signed-by={{ mariadb_repository_keyring }}]
+      {{ mariadb_repository_base_url }}
+      {{ mariadb_repository_suite }}
+      {{ mariadb_repository_components }}
+    filename: mariadb
+    state: present
+  when: mariadb_repository_enabled | bool
+
+- name: Update the Debian package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600

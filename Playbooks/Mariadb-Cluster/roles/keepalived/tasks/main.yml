@@ -1,0 +1,9 @@
+---
+- name: Validate Keepalived prerequisites
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Install Keepalived
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure Keepalived
+  ansible.builtin.include_tasks: configure.yml
